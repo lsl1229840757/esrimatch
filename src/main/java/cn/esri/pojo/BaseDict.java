@@ -1,4 +1,4 @@
-package tk.piaoyang.ssm.pojo;
+package cn.esri.pojo;
 
 public class BaseDict {
     private String dict_id;

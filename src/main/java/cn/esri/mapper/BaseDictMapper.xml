@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="tk.piaoyang.ssm.mapper.BaseDictMapper">
+<mapper namespace="cn.esri.mapper.BaseDictMapper">
 
     <!-- 根据类别代码查询数据 -->
     <select id="queryBaseDictByDictTypeCode" parameterType="String"

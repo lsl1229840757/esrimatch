@@ -1,8 +1,8 @@
-package tk.piaoyang.ssm.mapper;
+package cn.esri.mapper;
 
 import org.apache.ibatis.annotations.Param;
-import tk.piaoyang.ssm.pojo.Customer;
-import tk.piaoyang.ssm.pojo.CustomerExample;
+import cn.esri.pojo.Customer;
+import cn.esri.pojo.CustomerExample;
 
 import java.util.List;
 

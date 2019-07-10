@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="tk.piaoyang.ssm.mapper.CustomerMapper" >
-  <resultMap id="BaseResultMap" type="tk.piaoyang.ssm.pojo.Customer" >
+<mapper namespace="cn.esri.mapper.CustomerMapper" >
+  <resultMap id="BaseResultMap" type="cn.esri.pojo.Customer" >
     <id column="cust_id" property="custId" jdbcType="BIGINT" />
     <result column="cust_name" property="custName" jdbcType="VARCHAR" />
     <result column="cust_user_id" property="custUserId" jdbcType="BIGINT" />
@@ -78,7 +78,7 @@
     cust_id, cust_name, cust_user_id, cust_create_id, cust_source, cust_industry, cust_level, 
     cust_linkman, cust_phone, cust_mobile, cust_zipcode, cust_address, cust_createtime
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="tk.piaoyang.ssm.pojo.CustomerExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="cn.esri.pojo.CustomerExample" >
     select
     <if test="distinct" >
       distinct
@@ -105,13 +105,13 @@
     delete from customer
     where cust_id = #{custId,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="tk.piaoyang.ssm.pojo.CustomerExample" >
+  <delete id="deleteByExample" parameterType="cn.esri.pojo.CustomerExample" >
     delete from customer
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="tk.piaoyang.ssm.pojo.Customer" >
+  <insert id="insert" parameterType="cn.esri.pojo.Customer" >
     insert into customer (cust_id, cust_name, cust_user_id, 
       cust_create_id, cust_source, cust_industry, 
       cust_level, cust_linkman, cust_phone, 
@@ -123,7 +123,7 @@
       #{custMobile,jdbcType=VARCHAR}, #{custZipcode,jdbcType=VARCHAR}, #{custAddress,jdbcType=VARCHAR}, 
       #{custCreatetime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="tk.piaoyang.ssm.pojo.Customer" >
+  <insert id="insertSelective" parameterType="cn.esri.pojo.Customer" >
     insert into customer
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="custId != null" >
@@ -208,7 +208,7 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="tk.piaoyang.ssm.pojo.CustomerExample" resultType="java.lang.Integer" >
+  <select id="countByExample" parameterType="cn.esri.pojo.CustomerExample" resultType="java.lang.Integer" >
     select count(*) from customer
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
@@ -280,7 +280,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="tk.piaoyang.ssm.pojo.Customer" >
+  <update id="updateByPrimaryKeySelective" parameterType="cn.esri.pojo.Customer" >
     update customer
     <set >
       <if test="custName != null" >
@@ -322,7 +322,7 @@
     </set>
     where cust_id = #{custId,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="tk.piaoyang.ssm.pojo.Customer" >
+  <update id="updateByPrimaryKey" parameterType="cn.esri.pojo.Customer" >
     update customer
     set cust_name = #{custName,jdbcType=VARCHAR},
       cust_user_id = #{custUserId,jdbcType=BIGINT},
