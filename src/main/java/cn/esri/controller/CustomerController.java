@@ -1,6 +1,6 @@
-package tk.piaoyang.ssm.controller;
+package cn.esri.controller;
 
-import cn.itcast.common.utils.Page;
+import cn.esri.utils.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -8,11 +8,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import tk.piaoyang.ssm.pojo.BaseDict;
-import tk.piaoyang.ssm.pojo.Customer;
-import tk.piaoyang.ssm.pojo.CustomerExample;
-import tk.piaoyang.ssm.service.BaseDictService;
-import tk.piaoyang.ssm.service.CustomerService;
+import cn.esri.pojo.BaseDict;
+import cn.esri.pojo.Customer;
+import cn.esri.pojo.CustomerExample;
+import cn.esri.service.BaseDictService;
+import cn.esri.service.CustomerService;
 
 import java.util.List;
 

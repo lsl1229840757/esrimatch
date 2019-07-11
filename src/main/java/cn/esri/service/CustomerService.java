@@ -1,10 +1,10 @@
-package tk.piaoyang.ssm.service;
+package cn.esri.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tk.piaoyang.ssm.mapper.CustomerMapper;
-import tk.piaoyang.ssm.pojo.Customer;
-import tk.piaoyang.ssm.pojo.CustomerExample;
+import cn.esri.mapper.CustomerMapper;
+import cn.esri.pojo.Customer;
+import cn.esri.pojo.CustomerExample;
 
 import java.util.List;
 

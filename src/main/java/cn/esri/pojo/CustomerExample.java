@@ -1,4 +1,4 @@
-package tk.piaoyang.ssm.pojo;
+package cn.esri.pojo;
 
 import java.util.ArrayList;
 import java.util.Date;

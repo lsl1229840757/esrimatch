@@ -1,6 +1,6 @@
-package tk.piaoyang.ssm.mapper;
+package cn.esri.mapper;
 
-import tk.piaoyang.ssm.pojo.BaseDict;
+import cn.esri.pojo.BaseDict;
 
 import java.util.HashMap;
 import java.util.List;

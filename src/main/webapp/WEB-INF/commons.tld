@@ -12,7 +12,7 @@
 
 	<tag>
 		<name>page</name>
-		<tag-class>cn.itcast.common.utils.NavigationTag</tag-class>
+		<tag-class>cn.esri.utils.NavigationTag</tag-class>
 		<body-content>JSP</body-content>
 		<description>create navigation for paging</description>
 		<attribute>

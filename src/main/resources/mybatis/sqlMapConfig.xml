@@ -10,7 +10,7 @@
 
     <!--如果使用的是逆向工程，不需要配置别名-->
     <typeAliases>
-        <package name="tk.piaoyang.ssm.pojo" />
+        <package name="cn.esri.pojo" />
     </typeAliases>
 
 

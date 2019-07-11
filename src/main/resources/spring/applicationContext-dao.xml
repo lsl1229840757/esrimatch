@@ -30,6 +30,6 @@
     <!-- 配置Mapper扫描 -->
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <!-- 设置Mapper扫描包 -->
-        <property name="basePackage" value="tk.piaoyang.ssm.mapper" />
+        <property name="basePackage" value="cn.esri.mapper" />
     </bean>
 </beans>

@@ -1,4 +1,4 @@
-package tk.piaoyang.ssm.vo;
+package cn.esri.vo;
 
 public class QueryVo {
     private String custName;

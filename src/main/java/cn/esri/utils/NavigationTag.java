@@ -1,4 +1,4 @@
-package cn.itcast.common.utils;
+package cn.esri.utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
