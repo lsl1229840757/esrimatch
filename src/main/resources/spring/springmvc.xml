@@ -12,6 +12,7 @@
 
     <!--配置静态资源-->
     <mvc:resources location="/css/" mapping="/css/**"/>
+    <mvc:resources location="/data/" mapping="/data/**"/>
     <mvc:resources location="/js/" mapping="/js/**"/>
     <mvc:resources location="/fonts/" mapping="/fonts/**"/>
 
@@ -29,7 +30,5 @@
         <!-- 配置逻辑视图的后缀 -->
         <property name="suffix" value=".jsp"/>
     </bean>
-
-
 
 </beans>
