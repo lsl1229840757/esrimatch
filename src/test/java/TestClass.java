@@ -1,3 +1,5 @@
+import cn.esri.vo.Point;
+import cn.esri.vo.PolyLine;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -5,6 +7,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import cn.esri.mapper.BaseDictMapper;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,7 +21,8 @@ public class TestClass {
     public void test(){
 //        HashMap<String, Object> map = baseDictMapper.test("001");
 //        System.out.println(map);
-        List<HashMap<String, Object>> list = baseDictMapper.test("001");
-        System.out.println(list);
+        /*List<HashMap<String, Object>> list = baseDictMapper.test("001");
+        System.out.println(list);*/
+
     }
 }
