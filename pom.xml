@@ -135,8 +135,13 @@
             <version>2.4</version>
             <classifier>jdk15</classifier>
         </dependency>
-
-
+        <!--arima模型需要的矩阵库-->
+        <!-- https://mvnrepository.com/artifact/gov.nist.math/jama -->
+        <dependency>
+            <groupId>gov.nist.math</groupId>
+            <artifactId>jama</artifactId>
+            <version>1.0.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -190,6 +195,16 @@
                 </includes>
                 <filtering>false</filtering>
             </resource>
+
+            <!--引入web-inf下中央仓库没有的jar-->
+            <resource>
+                <directory>src/main/webapp/WEB-INF/lib</directory>
+                <targetPath>WEB-INF/lib/</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+
         </resources>
     </build>
 </project>
