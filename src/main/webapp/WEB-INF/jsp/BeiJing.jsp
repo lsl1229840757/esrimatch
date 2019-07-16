@@ -21,7 +21,8 @@
     <script type="text/javascript">
         $(function(){
 
-            var map, layer, options,prjCoordSys,epsgcode,url="http://localhost:8090/iserver/services/map-testBeijing2/rest/maps/Export_Output@test";
+            var map, layer, options,prjCoordSys,epsgcode,url="\n" +
+                "http://localhost:8090/iserver/services/map-test/rest/maps/Beijing_Nodes@test";
             //url = "http://localhost:8090/iserver/services/map-testBeijing/rest/maps/test_Network@test";
             var lon=0,lat=0,zoomlevel=2,initZoomToScale;
             // 修改页面标题
