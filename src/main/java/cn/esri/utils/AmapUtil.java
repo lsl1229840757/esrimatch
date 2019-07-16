@@ -1,7 +1,6 @@
 package cn.esri.utils;
 
 import cn.esri.vo.AMapDrivingParameter;
-import com.sun.istack.internal.NotNull;
 import net.sf.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -39,7 +38,7 @@ public class AmapUtil {
      * @param parameter 高德定义的参数
      * @return 结果Json
      */
-    public static JSONObject planPathDriving(@NotNull AMapDrivingParameter parameter){
+    public static JSONObject planPathDriving(AMapDrivingParameter parameter){
         String urlStr = URL_DRIVING+parameter;
         System.out.println("地址参数："+urlStr);
         /**
