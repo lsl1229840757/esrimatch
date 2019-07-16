@@ -79,7 +79,6 @@ public class ARIMA {
 			
 
 			double temp=getmodelAIC(armaARMAcoe,stdoriginalData,paraType);
-			System.out.println("AIC of these model="+temp);
 			if (temp<minAIC)
 			{
 				bestModelindex=i;
@@ -275,7 +274,6 @@ public class ARIMA {
 		boolean iterationFlag=true;
 		//�ⷽ����
 		//�������ⷽ����
-		System.out.println("autocorData[0]"+autocorData[0]);
 		while(iterationFlag)
 		{
 			for(int i=1;i<maPara.length;i++)
