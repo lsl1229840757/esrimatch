@@ -38,7 +38,7 @@
         map: map,
     });
 
-    $.get('${path}/data/buslines_bj_zip.txt', function (data) {
+    $.get('${visit_path}/data/buslines_bj_zip.txt', function (data) {
 
         var start = [];
         var lines = data.split('&').map(function (item) {

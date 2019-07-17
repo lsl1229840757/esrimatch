@@ -50,7 +50,7 @@
     ];
 
     // 10万辆北京公共交通车辆
-    $.get('${path}/data/GCJ02.csv', function (csv) {
+    $.get('${visit_path}/data/GCJ02.csv', function (csv) {
         layer.setData(csv, {
             lnglat: function (obj) {
                 var value = obj.value;

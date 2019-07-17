@@ -17,7 +17,7 @@
 <div id="container" class="container"></div>
 <script src="//webapi.amap.com/maps?v=1.4.15&key=cfa2cd566d02f475496c9f7d0dd8199b&"></script>
 <script src="//webapi.amap.com/loca?v=1.3.0&key=cfa2cd566d02f475496c9f7d0dd8199b"></script>
-<script type="text/javascript" src="${path}/js/heatmapData.js"></script>
+<script type="text/javascript" src="${visit_path}/js/heatmapData.js"></script>
 <script>
 
     var map = new AMap.Map('container', {

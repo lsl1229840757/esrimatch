@@ -15,9 +15,9 @@
             background: white;
         }
     </style>
-    <link rel="stylesheet" href="${path}/js/iclientLeaflet/iclient9-leaflet.css"/>
-    <script type="text/javascript" exclude="iclient9-leaflet" include="echarts,leaflet.draw" src="${path}/js/iclientLeaflet/include-leaflet.js"></script>
-    <script type="text/javascript" src="${path}/js/iclientLeaflet/iclient9-leaflet.min.js"></script>
+    <link rel="stylesheet" href="${visit_path}/js/iclientLeaflet/iclient9-leaflet.css"/>
+    <script type="text/javascript" exclude="iclient9-leaflet" include="echarts,leaflet.draw" src="${visit_path}/js/iclientLeaflet/include-leaflet.js"></script>
+    <script type="text/javascript" src="${visit_path}/js/iclientLeaflet/iclient9-leaflet.min.js"></script>
     <script type="text/javascript">
         $(function(){
 
@@ -98,7 +98,7 @@
             var busLines = [];
 
             $.ajaxSettings.async = false;
-            $.get('${path}/data/test.json', function (data) {
+            $.get('${visit_path}/data/test.json', function (data) {
                 console.log(data)
                 var hStep = 300 / (data.length - 1);
                 var busLines = [].concat.apply([], data.map(function (busLine, idx) {
