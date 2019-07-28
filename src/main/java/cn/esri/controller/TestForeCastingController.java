@@ -2,6 +2,7 @@ package cn.esri.controller;
 
 import cn.esri.service.ForecastingService;
 import net.sf.json.JSONObject;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Controller;
@@ -23,6 +24,7 @@ public class TestForeCastingController {
 
     @RequestMapping("testData")
     public void testData() throws IOException {
+
         ResourceLoader resourceLoader = new ClassPathXmlApplicationContext();
         org.springframework.core.io.Resource resource =resourceLoader.getResource("classpath:ceshidata.txt");
         //1713752

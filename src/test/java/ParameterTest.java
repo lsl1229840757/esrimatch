@@ -1,5 +1,5 @@
 import cn.esri.utils.AmapUtil;
-import cn.esri.vo.AMapDrivingParameter;
+import cn.esri.pojo.AMapDrivingParameter;
 import cn.esri.vo.Point;
 import cn.esri.vo.PolyLine;
 import cn.esri.vo.Polygon;
