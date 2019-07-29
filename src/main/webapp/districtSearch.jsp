@@ -86,6 +86,43 @@
             }
             map.add(polygons)
             map.setFitView(polygons);//视口自适应
+            //将overlays转换为geojson
+            var geojson = new AMap.GeoJSON({
+                geoJSON: null,
+                // 还可以自定义getMarker和getPolyline
+                getPolygon: function(geojson, lnglats) {
+                    // 计算面积
+                    var area = AMap.GeometryUtil.ringArea(lnglats[0])
+
+                    return new AMap.Polygon({
+                        path: lnglats,
+                        fillOpacity: 1 - Math.sqrt(area / 8000000000),// 面积越大透明度越高
+                        strokeColor: 'white',
+                        fillColor: 'red'
+                    });
+                }
+            });
+            geojson.addOverlays(polygons);
+           // console.log(geojson.toGeoJSON());
+            //通过ajax调用数据库函数
+            $.ajax({
+                method : "POST",
+                timeout : 5000,
+                url : path+"/getArc",
+                data :{
+                    "cars":geojson.toGeoJSON()
+                },
+                dataType : "json",
+                contentType :'application/x-www-form-urlencoded; charset=UTF-8',
+                async:false,
+                success : function(geojson) {
+                    //geojson即为空间裁切后的multipoint
+                },
+                error : function(errorMessage) {
+                    alert("error");
+                }
+            });
+
         });
     }
     drawBounds();
