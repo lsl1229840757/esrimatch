@@ -1,9 +1,10 @@
 package cn.esri.vo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PolyLine {
+public class PolyLine implements Serializable{
 
     private List<Point> points = new ArrayList<>();
 

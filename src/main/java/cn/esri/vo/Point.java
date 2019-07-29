@@ -1,6 +1,8 @@
 package cn.esri.vo;
 
-public class Point {
+import java.io.Serializable;
+
+public class Point implements Serializable{
 
     private Double lon;
 
