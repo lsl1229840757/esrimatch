@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/ssm_war_exploded/';
+const BASE_URL = 'http://piaoyang.xyz:8080/traffic-system/';
 
 const DEBUG = true;
 /**
