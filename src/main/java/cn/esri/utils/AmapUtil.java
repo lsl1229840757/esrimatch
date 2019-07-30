@@ -1,6 +1,6 @@
 package cn.esri.utils;
 
-import cn.esri.vo.AMapDrivingParameter;
+import cn.esri.pojo.AMapDrivingParameter;
 import net.sf.json.JSONObject;
 
 import java.io.BufferedReader;

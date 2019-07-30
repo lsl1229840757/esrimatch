@@ -1,10 +1,14 @@
-package cn.esri.vo;
+package cn.esri.pojo;
+
+import cn.esri.vo.Point;
+import cn.esri.vo.PolyLine;
+import cn.esri.vo.Polygon;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AMapDrivingParameter {
+public class AMapDrivingParameter{
 
     // 起始poi的id
     private Integer originId;

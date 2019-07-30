@@ -1,6 +1,8 @@
 package cn.esri.vo;
 
-public class QueryVo {
+import java.io.Serializable;
+
+public class QueryVo implements Serializable{
     private String custName;
     private String custSource;
     private String custIndustry;
@@ -56,8 +58,6 @@ public class QueryVo {
     public Integer getStart() {
         return (page - 1) * rows;
     }
-
-
 
     public Integer getRows() {
         return rows;
