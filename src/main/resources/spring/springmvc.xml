@@ -9,8 +9,11 @@
 
     <!-- 配置controller扫描包 -->
     <context:component-scan base-package="cn.esri.controller"/>
+    <context:component-scan base-package="cn.esri.handler"/>
+    <context:component-scan base-package="cn.esri.interceptor"/>
 
     <!--配置静态资源-->
+    <mvc:resources location="/html/" mapping="/html/**"/>
     <mvc:resources location="/css/" mapping="/css/**"/>
     <mvc:resources location="/data/" mapping="/data/**"/>
     <mvc:resources location="/js/" mapping="/js/**"/>

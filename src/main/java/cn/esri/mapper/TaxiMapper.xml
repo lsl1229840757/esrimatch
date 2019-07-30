@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="cn.esri.mapper.BaseDictMapper">
+<mapper namespace="cn.esri.mapper.TaxiMapper">
 
     <!-- 根据类别代码查询数据 -->
-    <select id="queryBaseDictByDictTypeCode" parameterType="String"
-            resultType="java.util.list">
+    <select id="queryBaseDictByDictTypeCode" parameterType="String">
     </select>
 
 </mapper>
