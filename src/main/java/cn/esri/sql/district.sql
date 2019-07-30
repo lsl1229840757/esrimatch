@@ -20,7 +20,7 @@ CREATE OR REPLACE function search_by_district(district_geojson text, start_time 
 	from origin_data
 	where receive_time between start_time and start_time + '1 m'
 		and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')',4326)
-						  ,ST_GeomFromGeoJSON(district_geojson))
+						  ,ST_GeomFromGeoJSON(district_geojson));
 
 
  end;
