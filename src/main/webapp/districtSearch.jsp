@@ -18,6 +18,7 @@
     </style>
 </head>
 <body>
+<!-- container为地图容器 -->
 <div id="container"></div>
 <div class="input-card">
     <label style='color:grey'>行政区边界查询</label>
