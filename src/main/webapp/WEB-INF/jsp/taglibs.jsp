@@ -6,8 +6,6 @@
 <c:set var="path" value="${pageContext.request.contextPath }"/>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<!-- EL可以直接引入jstl的变量 -->
-<link href="${path }/css/index.css" rel="stylesheet" type="text/css" />
 <script type="text/javascript">
 	//定义js可以访问的全局变量
 	var path = "${path}";

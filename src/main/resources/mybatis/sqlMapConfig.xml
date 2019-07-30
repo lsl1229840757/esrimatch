@@ -8,10 +8,13 @@
         <setting name="mapUnderscoreToCamelCase" value="true" />
     </settings>
 
-    <!--如果使用的是逆向工程，不需要配置别名-->
     <typeAliases>
-        <package name="cn.esri.pojo" />
+        <typeAlias type="cn.esri.vo.DistinctQuery" alias="DistinctQuery" />
+        <typeAlias type="cn.esri.vo.Status" alias="Status"/>
     </typeAliases>
 
+    <mappers>
+        <mapper resource="cn/esri/mapper/StatusMapper.xml"/>
+    </mappers>
 
 </configuration>
