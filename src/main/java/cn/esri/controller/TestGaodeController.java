@@ -9,12 +9,13 @@ import org.springframework.web.servlet.ModelAndView;
 public class TestGaodeController {
 
     @RequestMapping("road")
-    public ModelAndView road() {
+
+    public ModelAndView road(){
         return new ModelAndView("GaoDe");
     }
 
     @RequestMapping("point")
-    public ModelAndView point() {
+    public ModelAndView point(){
         return new ModelAndView("GaoDe2");
     }
 

@@ -5,9 +5,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import cn.esri.mapper.BaseDictMapper;
 
-import java.util.HashMap;
-import java.util.List;
-
 @RunWith(SpringRunner.class)
 @ContextConfiguration(locations={"classpath:spring/applicationContext-*.xml"})
 public class TestClass {
@@ -17,7 +14,8 @@ public class TestClass {
     public void test(){
 //        HashMap<String, Object> map = baseDictMapper.test("001");
 //        System.out.println(map);
-        List<HashMap<String, Object>> list = baseDictMapper.test("001");
-        System.out.println(list);
+        /*List<HashMap<String, Object>> list = baseDictMapper.test("001");
+        System.out.println(list);*/
+
     }
 }
