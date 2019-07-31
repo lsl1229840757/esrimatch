@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- 高德JS -->
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=6172ea799c64fdc98eed0bdd4869f3fc">
+    </script>
+    <!-- 高德UI -->
+    <script src="//webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+    <!-- Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <style>
+        html,body{
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            height: 80%;
+            width: 100%;
+        }
+        li{
+            display: inline-block;
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="app">
+        <p>{{msg}}</p>
+        <ul>
+            <li v-for="car in cars" v-on:click="getPath(car)">
+                {{ car }}
+            </li>
+        </ul>
+    </div>
+</body>
+<script src="../js/track.js" type="module"></script>
+
+</html>
