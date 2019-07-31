@@ -107,7 +107,6 @@
             geojson.addOverlays(polygons);
             console.log(path + "/status/ajax_searchByDistinct.action");
             console.log(geojson.toGeoJSON())
-            // console.log(geojson.toGeoJSON());
             var distinct = {"district_geojson": geojson.toGeoJSON(),  "start_time":new Date()}
             console.log(distinct)
             //通过ajax调用数据库函数
@@ -119,31 +118,14 @@
                        "distinct":JSON.stringify(distinct)
                 },
                 async: false,
-                success: function (geojson) {
+                success: function (result) {
                     //geojson即为空间裁切后的multipoint
+                    console.log(result);
                 },
                 error: function (errorMessage) {
                     alert(errorMessage.responseText);
                 }
             });
-            /*$.ajax({
-                method : "POST",
-                timeout : 5000,
-                url : path+"/getArc",
-                data :{
-                    "cars":geojson.toGeoJSON()
-                },
-                dataType : "json",
-                contentType :'application/x-www-form-urlencoded; charset=UTF-8',
-                async:false,
-                success : function(geojson) {
-                    //geojson即为空间裁切后的multipoint
-                },
-                error : function(errorMessage) {
-                    alert("error");
-                }
-            });*/
-
     });
     }
     drawBounds();

@@ -2,8 +2,6 @@ package cn.esri.vo;
 
 
 
-import com.google.gson.JsonObject;
-
 import java.io.Serializable;
 import java.util.Date;
 
