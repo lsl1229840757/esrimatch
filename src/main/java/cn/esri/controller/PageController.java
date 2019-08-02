@@ -10,7 +10,6 @@ public class PageController {
 
     @RequestMapping("distinctSearchPage")
     public ModelAndView distinctSearchPage(){
-        System.out.println("sfadfs");
         return new ModelAndView("distinctSearch");
     }
 

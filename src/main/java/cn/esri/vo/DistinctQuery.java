@@ -2,6 +2,9 @@ package cn.esri.vo;
 
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -11,8 +14,12 @@ import java.util.Date;
 
 public class DistinctQuery implements Serializable{
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") // 入参
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm", timezone = "GMT+8") //出参
     private Date end_time;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm", timezone = "GMT+8")
     private Date start_time;
 
     private String district_geojson;
@@ -23,6 +30,8 @@ public class DistinctQuery implements Serializable{
 
     public void setStart_time(Date start_time) {
         this.start_time = start_time;
+        // 默认设置end_time间隔5min
+        setEnd_time(new Date(start_time.getTime() + 1 * 60 * 1000));
     }
 
     public Date getEnd_time() {
