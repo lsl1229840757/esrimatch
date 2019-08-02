@@ -9,6 +9,7 @@ import com.alibaba.druid.support.spring.stat.annotation.Stat;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -34,30 +35,9 @@ public class StatusController {
      * @throws IOException
      */
     @RequestMapping("ajax_searchByDistinct")
-    public ModelAndView ajax_searchByDistinct(String distinct, HttpServletResponse response) throws Exception{
-        JSONObject distinctJson = JSONObject.fromObject(distinct);
-        JSONArray districtGeoJsonArray = distinctJson.getJSONArray("district_geojson");
-        List<Status> result = new ArrayList<>();
-        // 一个区域可能有多个polygon
-        for(int i=0;i<districtGeoJsonArray.size();i++){
-            // TODO 注意高德的坐标转换
-            String geometryStr = districtGeoJsonArray.getJSONObject(i).getString("geometry");
-            DistinctQuery distinctQuery = new DistinctQuery();
-            distinctQuery.setDistrict_geojson(geometryStr);
-
-            // 测试固定时间
-            distinctQuery.setStart_time(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2016-08-01 00:00:00"));
-            distinctQuery.setEnd_time(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2016-08-01 00:05:00"));
-
-            List<Status> statuses = statusService.searchByDistinct(distinctQuery);
-            result.addAll(statuses);
-        }
-        // 坐标转换,把wgs坐标转为GCJ02
-        for (Status status:result){
-            double[] lonlat = Transform.transformWGS84ToGCJ02(status.getLon(), status.getLat());
-            status.setLon(lonlat[0]);
-            status.setLat(lonlat[1]);
-        }
+    public ModelAndView ajax_searchByDistinct(@RequestBody DistinctQuery distinct,
+                                              HttpServletResponse response) throws Exception{
+        List<Status> result = statusService.searchByDistinct(distinct);
         // 将List转为JsonArray
         JsonUtils<Status> jsonUtils = new JsonUtils<>();
         // 暂时不要方位角

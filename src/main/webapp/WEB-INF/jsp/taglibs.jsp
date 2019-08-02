@@ -11,6 +11,7 @@
 	var path = "${path}";
 </script>
 <script type="text/javascript" src="${path }/js/jquery-3.3.1.js"></script>
+<%--<script type="text/javascript" src="${path }/js/jquery.form.js"></script>--%>
 </head>
 <body>
 </body>
