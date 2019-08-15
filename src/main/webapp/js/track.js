@@ -76,22 +76,22 @@ AMapUI.load(['ui/misc/PathSimplifier', 'lib/$'], function (PathSimplifier, $) {
 // 请求车辆ID
 request("track/get_car_id")
     .then(result => {
-        // 获取到了ID，保存到了result列表中
-        console.log(result);
-        app.cars = result;
-        request("track/get_by_id", {
-                id: result[222]
-            })
-            .then(result => {
-                // 获取到了路径，保存到了result列表中
-                let path = [];
-                for (let i = 0; i < result.length; i++) {
-                    path.push(Object.values(result[i]));
-                }
-                console.log(path)
-                loadPath(path);
-            });
-    });
+    // 获取到了ID，保存到了result列表中
+    console.log(result);
+app.cars = result;
+request("track/get_by_id", {
+    id: result[222]
+})
+    .then(result => {
+    // 获取到了路径，保存到了result列表中
+    let path = [];
+for (let i = 0; i < result.length; i++) {
+    path.push(Object.values(result[i]));
+}
+console.log(path)
+loadPath(path);
+});
+});
 
 
 
@@ -121,25 +121,35 @@ function loadPath(path) {
 var app = new Vue({
     el: '#app',
     data: {
-        msg:"点击下列数字显示轨迹",
+        msg: "点击下列数字显示轨迹",
         cars: []
     },
     methods: {
         getPath: car => {
-            app.msg = '获取中~';
-            request("track/get_by_id", {
-                    id: car
-                })
-                .then(result => {
-                    // 获取到了路径，保存到了result列表中
-                    let path = [];
-                    for (let i = 0; i < result.length; i++) {
-                        path.push(Object.values(result[i]));
-                    }
-                    console.log(path)
-                    loadPath(path);
-                    app.msg = '点击下列数字显示轨迹';
-                });
-        },
-    },
+        app.msg = '获取中~';
+request("track/get_by_id", {
+    id: car
 })
+    .then(result => {
+    // 获取到了路径，保存到了result列表中
+    let path = [];
+for (let i = 0; i < result.length; i++) {
+    path.push(Object.values(result[i]));
+}
+console.log(path)
+loadPath(path);
+app.msg = '点击下列数字显示轨迹';
+});
+},
+},
+})
+
+// 接收来自父页面的调用
+function parentCall(date, time, text) {
+    console.log("子页面接收请求!");
+    console.log(date);
+    console.log(time);
+    console.log(text);
+}
+// 将函数绑定window对象上
+window.parentCall = parentCall;
