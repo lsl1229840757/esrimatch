@@ -36,7 +36,7 @@ public class IserverUtil {
         params.put("queryParameter", queryParameter);
         StringEntity se = new StringEntity(params.toString(), "UTF-8");
         // 创建Post请求
-        HttpPost httpPost = new HttpPost("http://localhost:8090/iserver/services/data-BeiJingRoad/rest/data/featureResults.json?returnContent=true");
+        HttpPost httpPost = new HttpPost("http://47.103.23.188:8090/iserver/services/data-BeiJingRoad/rest/data/featureResults.json?returnContent=true");
         httpPost.setEntity(se);
         // 响应模型
         CloseableHttpResponse response = null;
