@@ -15,6 +15,7 @@
 
     <mappers>
         <mapper resource="cn/esri/mapper/StatusMapper.xml"/>
+        <mapper resource="cn/esri/mapper/UtilsMapper.xml"/>
     </mappers>
 
 </configuration>

@@ -1,5 +1,7 @@
 package cn.esri.utils;
 
+import cn.esri.vo.Point;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -8,15 +10,19 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /*超图iserver服务工具*/
 public class IserverUtil {
 
     /**
-     *
-      * @param name
+     * @param name 查询道路名字
      * @return iserver的json,注意:这里success为0代表失败，1为成功,取值的时候请先检查
      */
     public static JSONObject queryRoadByName(String name){
@@ -70,5 +76,29 @@ public class IserverUtil {
         result.put("success", 0);
         return result;
     }
+
+    /**
+     * 将iserver的geometry转为geojson
+     * @param geometry iserver的geometry
+     * @return geojson
+     */
+    public static JSONObject sJson2GeoJson(JSONObject geometry){
+        JSONObject geoJson = new JSONObject();
+        geoJson.put("type", geometry.getString("type").replace("LINE", "LineString"));
+        // 处理points
+        JSONArray coordinatesArray = new JSONArray();
+        JSONArray pointsArray = geometry.getJSONArray("points");
+        for(int j=0;j<pointsArray.size();j++){
+            JSONArray coordinate = new JSONArray();
+            coordinate.add(pointsArray.getJSONObject(j).getDouble("x"));
+            coordinate.add(pointsArray.getJSONObject(j).getDouble("y"));
+            coordinatesArray.add(coordinate);
+        }
+        geoJson.put("coordinates", coordinatesArray);
+        return geoJson;
+    }
+
+
+
 
 }
