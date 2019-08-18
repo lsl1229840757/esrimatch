@@ -37,4 +37,8 @@ public class Point implements Serializable{
         this.lon = lon;
         this.lat = lat;
     }
+
+    public String toGeoJsonStr(){
+        return "{\"type\":\"Point\",\"coordinates\":["+this.getLon()+","+this.getLat()+"]}";
+    }
 }
