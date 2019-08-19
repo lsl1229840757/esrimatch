@@ -37,7 +37,7 @@ public class TestForeCastingController {
         double[] dataArray=new double[arraylist.size()-1];
         for(int i=0;i<arraylist.size()-1;i++)
             dataArray[i]=arraylist.get(i);
-        JSONObject forecast = forecastingService.forecast(dataArray);
+        JSONObject forecast = forecastingService.forecastJson(dataArray);
         System.out.println(forecast);
     }
 

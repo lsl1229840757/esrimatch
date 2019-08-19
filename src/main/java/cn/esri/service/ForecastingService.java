@@ -12,12 +12,14 @@ public interface ForecastingService {
 
 
     // 直接传入数据
-    JSONObject forecast(double[] data);
+    JSONObject forecastJson(double[] data);
 
     // 名字查询
     JSONObject forecastByName(String name);
 
     // 自定义范围查询
     JsonConfig forecastByGeometry();
+
+    double[] forecastDoubleArray(double[] data);
 
 }

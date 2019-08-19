@@ -19,7 +19,7 @@ public class ForeCastingServiceImpl implements ForecastingService {
      * @return 预测结果,status为0则预测失败，为1则预测成功
      */
     @Override
-    public JSONObject forecast(double[] data) {
+    public JSONObject forecastJson(double[] data) {
         JSONObject jsonObject = new JSONObject();
         if(data.length < 2){
             jsonObject.put("status", 0);
@@ -53,5 +53,24 @@ public class ForeCastingServiceImpl implements ForecastingService {
     @Override
     public JsonConfig forecastByGeometry() {
         return null;
+    }
+
+    @Override
+    public double[] forecastDoubleArray(double[] data) {
+        if(data.length < 2){
+            return data;
+        }
+        // 开始预测
+        double[] dataArray = new double[data.length+steps];
+        System.arraycopy(data, 0, dataArray, 0, data.length);
+        for(int i=0;i<steps;i++){
+            double[] trainData =  new double[data.length+i];
+            System.arraycopy(dataArray, 0, trainData, 0, data.length+i);
+            ARIMA arima = new ARIMA(trainData);
+            int[] temptModel = arima.getARIMAmodel(); // 模型参数p,q阶数
+            int temptReslut = arima.aftDeal(arima.predictValue(temptModel[0],temptModel[1]));
+            dataArray[data.length+i] = temptReslut;
+        }
+        return dataArray;
     }
 }
