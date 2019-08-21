@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.nio.Buffer;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 @Service
 public interface StatusService {
@@ -19,7 +20,7 @@ public interface StatusService {
 
     public Map<String, List<List<Status>>> searchPickUpSpotStatusData(PredictQuery predictQuery);
 
-    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) ;
+    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery, CountDownLatch countDownLatch) ;
 
     Map<Integer,Map<String,Double>> predictByStatus(Map<Integer,Map<String,List<Status>>> boxStatusData,PredictQuery predictQuery);
 

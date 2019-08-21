@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 @Service
 public class StatusServiceImpl implements StatusService {
@@ -160,7 +161,7 @@ public class StatusServiceImpl implements StatusService {
      *          List<List<Status>>为储存各网格中车辆状态的详细信息的数组
      */
     @Override
-    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) {
+    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery, CountDownLatch countDownLatch) {
         SqlSession session = sessionFactory.openSession();
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
         Map<String, List<Integer>> result = new LinkedHashMap<String, List<Integer>>();
@@ -183,6 +184,7 @@ public class StatusServiceImpl implements StatusService {
                         int count = session.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
                         countArray.add(count);
                     }
+                    countDownLatch.countDown();
                 }
             });
             result.put(sdf.format(start_time)  + " - " + sdf.format(end_time),countArray);

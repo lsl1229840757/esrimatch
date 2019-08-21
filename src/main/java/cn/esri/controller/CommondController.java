@@ -17,6 +17,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 @Controller
 @RequestMapping("/commond/*")
@@ -44,14 +45,21 @@ public class CommondController {
     @RequestMapping("ajax_searchOldCountData")
     @ResponseBody
     public   Map<String, List<Integer>> searchOldCountData(@RequestBody PredictQuery predictQuery){
-        Map<String, List<Integer>> statusResult = statusService.searchPickUpSpotCount(predictQuery);
+        CountDownLatch countDownLatch = new CountDownLatch(predictQuery.getIntervalNum());
+        Map<String, List<Integer>> statusResult = statusService.searchPickUpSpotCount(predictQuery,countDownLatch);
         return statusResult;
     }
 
     @RequestMapping("ajax_predictCarData")
     @ResponseBody
     public  Map<String, List<Integer>> forecastPickUpSpotCount(@RequestBody PredictQuery predictQuery){
-        Map<String, List<Integer>> searchCountResult = statusService.searchPickUpSpotCount(predictQuery);
+        CountDownLatch countDownLatch = new CountDownLatch(predictQuery.getIntervalNum());
+        Map<String, List<Integer>> searchCountResult = statusService.searchPickUpSpotCount(predictQuery,countDownLatch);
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Map<String, List<Integer>> predictCountsResult = statusService.predictByCount(searchCountResult,predictQuery);
         return  predictCountsResult;
     }
