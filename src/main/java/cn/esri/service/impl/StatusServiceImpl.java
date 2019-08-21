@@ -105,7 +105,7 @@ public class StatusServiceImpl implements StatusService {
     public Map<String, List<List<Status>>> searchPickUpSpotStatusData(PredictQuery predictQuery) {
         SqlSession session = sessionFactory.openSession();
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
-        Map<String, List<List<Status>>> result = new Hashtable<String, List<List<Status>>>();
+        Map<String, List<List<Status>>> result = new LinkedHashMap<String, List<List<Status>>>();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         for (int i = 0;i < predictQuery.getIntervalNum(); i ++){
             List<List<Status>> statusArray = new ArrayList<List<Status>>();
@@ -137,7 +137,7 @@ public class StatusServiceImpl implements StatusService {
     public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) {
         SqlSession session = sessionFactory.openSession();
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
-        Map<String, List<Integer>> result = new Hashtable<String, List<Integer>>();
+        Map<String, List<Integer>> result = new LinkedHashMap<String, List<Integer>>();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         for (int i = 0;i < predictQuery.getIntervalNum(); i ++){
             List<Integer> countArray = new ArrayList<Integer>();
@@ -167,24 +167,34 @@ public class StatusServiceImpl implements StatusService {
     @Override
     public Map<String, List<Integer>> predictByCount(Map<String, List<Integer>> boxStatusData, PredictQuery predictQuery) {
         JSONArray featureArray = JSONArray.fromObject( predictQuery.getGeometry_geojson());
-        int step = 4;
+        int old_step = boxStatusData.size();
+        int predict_step = 4;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //临时储存预测数据
         List<List<Integer>> temp = new ArrayList<List<Integer>>();
-        for(int i = 0 ; i < step ; i++){
+        //添加预测数据存储结构
+        for(int i = 0 ; i < predict_step; i++){
             List<Integer> forecastCertainTime = new ArrayList<Integer>();
             Date start_time = new Date(predictQuery.getNow_time().getTime() + predictQuery.getInterval()*i);
             Date end_time =  new Date(predictQuery.getNow_time().getTime() + predictQuery.getInterval()*(i+1));
             boxStatusData.put(sdf.format(start_time) + " - " + sdf.format(end_time),forecastCertainTime);
             temp.add(forecastCertainTime);
         }
+
+        forecastingService = new ForeCastingServiceImpl();
         for(int i = 0; i < featureArray.size(); i++){
+            //准备预测数据
             double[] predictPreData = new double[predictQuery.getIntervalNum()];
-            for(String date: boxStatusData.keySet()){
-                List<Integer> boxesCount = boxStatusData.get(date);
-                predictPreData[i] = boxesCount.get(i);
+            Iterator<String> iter = boxStatusData.keySet().iterator();
+            for(int j = 0 ; j < old_step; j++){
+                String date = iter.next();
+                List<Integer> data = boxStatusData.get(date);
+                predictPreData[j] = data.get(i);
             }
+            //预测
             double[] forecastResult = forecastingService.forecastDoubleArray(predictPreData);
-            for(int j = 0; j < step ; j++){
+            //存储预测结果
+            for(int j = 0; j < predict_step ; j++){
                 List<Integer> forecastCertainTime = temp.get(j);
                 forecastCertainTime.add((int) forecastResult[j + predictQuery.getIntervalNum()]);
             }

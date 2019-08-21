@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ include file="taglibs.jsp"%>
+<%@ include file="timeLineLibs.jsp"%>
 <html>
 <head>
     <title>乘车地点预测与推荐</title>
@@ -18,8 +19,14 @@
         width: 100%;
         height: 100%;
     }
+    #container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 80%;
+    }
 
-    .input-item-text{
+     .input-item-text{
         width:7rem;
     }
     .input-item-copy{
@@ -84,6 +91,16 @@
         color: #fff;
         background-color: #25A5F7;
         border-color: #25A5F7;
+    }
+
+    #timeLine{
+        float: left;
+        width: 100%;
+        height: 20%;
+    }
+
+    #cd-horizontal-timeline{
+        margin: 0;
     }
 
 </style>
@@ -152,8 +169,6 @@
                 }
                 return this.getN(index);
             }
-
-
         }
 
         function RoadUnit(){
@@ -193,7 +208,7 @@
         var callbackFlag = 0;
         var callbackNum = 0;
         var resultRoadUnit = null;
-
+        var currentBoxData = [];
 
         var map = new AMap.Map("container", {
             resizeEnable: true,
@@ -216,7 +231,9 @@
                 userPoint =  new AMap.Marker({
                     position: lnglat,
                     title: '北京',
-                    label:"乘客"
+                    label:"乘客",
+                    draggable:true,
+                    animation:"AMAP_ANIMATION_DROP"
                 });
                 map.add(userPoint);
             }else if(selectedButtonName === "chooseDriverLocation"){
@@ -229,7 +246,9 @@
                 driverPoint =  new AMap.Marker({
                     position: lnglat,
                     title: '北京',
-                    label:"司机"
+                    label:"司机",
+                    draggable:true,
+                    animation:"AMAP_ANIMATION_DROP"
                 });
                 map.add(driverPoint);
             }else{
@@ -339,20 +358,11 @@
         //clickEvent - #predict
         $("#predict").click(function (e) {
             var parttern = $('input[name="createBoxesMethodRadio"]:checked').val();
-            var jsonData = form2JsonObject("#predictForm");
             if(parttern === "currentTime"){
 
             }else if(parttern === "oldTime"){
                 if(validateForm("#predictForm")){
-                    var intervalSS = mapTime(jsonData["unitRadio"],parseInt(jsonData["interval"]));
-                    var intervalNum = parseFloat(jsonData["intervalNum"]);
-                    predictParam = {
-                        "now_time":jsonData["now_time"],
-                        "oldest_time":getOldest_time(jsonData["now_time"],intervalSS,intervalNum),
-                        "interval":intervalSS,
-                        "intervalNum": intervalNum,
-                        "geometry_geojson": jsonData["geometry_geojson"]
-                    }
+                    var predictParam = getPredictParam();
                     console.log(predictParam);
                     if($("#geometry_geojson").val()!=""){
                         $.ajax({
@@ -368,6 +378,7 @@
                                 jQuery.each(data,function (key,value) {
                                     statusCountData.push(value);
                                 })
+                                refreshTimeLine();
                             },
                             error: function (errorMessage) {
                                 alert("XML request Error");
@@ -380,6 +391,21 @@
 
             }
         });
+
+
+        function getPredictParam(){
+            var jsonData = form2JsonObject("#predictForm");
+            var intervalSS = mapTime(jsonData["unitRadio"],parseFloat(jsonData["interval"]));
+            var intervalNum = parseFloat(jsonData["intervalNum"]);
+            var predictParam = {
+                "now_time":jsonData["now_time"],
+                "oldest_time":getOldest_time(jsonData["now_time"],intervalSS,intervalNum),
+                "interval":intervalSS,
+                "intervalNum": intervalNum,
+                "geometry_geojson": jsonData["geometry_geojson"]
+            }
+            return predictParam;
+        }
 
         //bind
         //clickEvent - #predictPickUpSpot
@@ -467,7 +493,7 @@
             pickUpSpot =  new AMap.Marker({
                 position: resultRoadUnit.userNearestPoint,
                 title: '北京',
-                label:"乘客"
+                label:"乘车地点"
             });
             map.add(pickUpSpot);
         }
@@ -481,50 +507,54 @@
                     var startLngLat = driverPoint.getPosition();
                     var endLngLat = roadUnit.userNearestPoint;
 
-                    driving.search(startLngLat, endLngLat, function (status, result) {
-                        // 未出错时，result即是对应的路线规划方案
-                        if(status === 'complete' && result.info === 'OK'){
-                            var routeA = result.routes;
-                            var allTime = 0;
-                            for(var i = 0; i < routeA.length;i++ ){
-                                var driveRoute = routeA[i];
-                                allTime += driveRoute.time;
+                    (function(roadUnit){
+
+                        driving.search(startLngLat, endLngLat, function (status, result) {
+                            // 未出错时，result即是对应的路线规划方案
+                            if(status === 'complete' && result.info === 'OK'){
+                                var routeA = result.routes;
+                                var allTime = 0;
+                                for(var i = 0; i < routeA.length;i++ ){
+                                    var driveRoute = routeA[i];
+                                    allTime += driveRoute.time;
+                                }
+                                roadUnit.driverRoutineTime = allTime;
+                            }else{
+                                roadUnit.driverRoutineTime = AMap.GeometryUtil.distance(startLngLat,endLngLat)/8;
+                                console.log(roadUnit.roadName + "司机路径规划失败");
                             }
-                            roadUnit.driverRoutineTime = allTime;
-                        }else{
-                            roadUnit.driverRoutineTime = AMap.GeometryUtil.distance(startLngLat,endLngLat)/8;
-                            console.log(roadUnit.roadName + "司机路径规划失败");
-                        }
-                        callbackNum++;
-                        if(callbackNum >= callbackFlag){
-                            callback();
-                        }
-                    });
-                    driving.clear();
-                    walking.search(startLngLat, endLngLat, function (status, result) {
-                        // 未出错时，result即是对应的路线规划方案
-                        if(status === 'complete' && result.info === 'OK'){
-                            var routeA = result.routes;
-                            var allTime = 0;
-                            for(var i = 0; i < routeA.length;i++ ){
-                                var driveRoute = routeA[i];
-                                allTime += driveRoute.time;
+                            callbackNum++;
+                            if(callbackNum >= callbackFlag){
+                                callback();
                             }
-                            roadUnit.userRoutineTime = allTime;
-                        }else{
-                            roadUnit.userRoutineTime = roadUnit.userDistance*1000/0.7;
-                            console.log(roadUnit.roadName + "行人路径规划失败");
-                        }
-                        callbackNum++;
-                        if(callbackNum >= callbackFlag){
-                            callback();
-                        }
-                    });
-                    walking.clear();
+                        });
+                        driving.clear();
+                        walking.search(startLngLat, endLngLat, function (status, result) {
+                            // 未出错时，result即是对应的路线规划方案
+                            if(status === 'complete' && result.info === 'OK'){
+                                var routeA = result.routes;
+                                var allTime = 0;
+                                for(var i = 0; i < routeA.length;i++ ){
+                                    var driveRoute = routeA[i];
+                                    allTime += driveRoute.time;
+                                }
+                                roadUnit.userRoutineTime = allTime;
+                            }else{
+                                roadUnit.userRoutineTime = roadUnit.userDistance*1000/0.7;
+                                console.log(roadUnit.roadName + "行人路径规划失败");
+                            }
+                            callbackNum++;
+                            if(callbackNum >= callbackFlag){
+                                callback();
+                            }
+                        });
+                        walking.clear();
+                    })(roadUnit);
                 }
             }
         }
 
+        //Tool
         function getMaxRectIndex(array){
             var maxIndex = 0;
             var maxData = -1;
@@ -537,6 +567,7 @@
             return maxIndex;
         }
 
+        //Tool
         function getOldest_time(nowTime, intervalSS, intervalNum){
             var now = new Date(nowTime);
             var oldest = new Date(now.getTime() - intervalSS*intervalNum);
@@ -544,6 +575,7 @@
 
         }
 
+        //Tool
         function mapTime(unitName,timeNum){
             var timeMap = {
                 "hour":1*60*60*1000,
@@ -551,6 +583,64 @@
                 "month":30*24*60*60*1000
             };
             return  timeMap[unitName] * timeNum;
+        }
+
+
+        function refreshTimeLine(){
+            var predictParam = getPredictParam();
+            var old_date = new Date(predictParam["oldest_time"]);
+            var timeLineNum = predictParam["intervalNum"] + parseInt($("#predictCertainTime").val());
+            //清除li
+            $("#events").find("ol").empty();
+            for(var i = 0; i < timeLineNum; i++){
+                var date = new Date( old_date.getTime() + i*predictParam["interval"]);
+                var data2dateStr = moment(date).format("DD/MM/YYYYTHH:mm");
+                var dateShowText = moment(date).format("YYYY-MM-DD HH:mm");
+                $("#events").find("ol").append('<li><a href=\"#0\" indexTag=\"'+ i + ' \" data-date=\"'+ data2dateStr +'\">' + dateShowText + '</a></li>');
+            }
+            if(statusCountData.length){
+                $("#events").find("a").each((function () {
+                    var i = parseInt($(this).attr("indexTag"));
+                    $(this).click(function () {
+                        refreshBoxData(i);
+                    })
+                }))
+            }
+            initTimeLineO(120,60);
+        }
+
+        function refreshBoxData(n){
+            currentBoxData = statusCountData[n];
+            if(currentBoxData){
+                var max = Math.max.apply(null,currentBoxData);
+                var min = Math.min.apply(null,currentBoxData);
+                for(var i = 0; i < currentBoxData.length; i++){
+                    var data = currentBoxData[i];
+                    var color = mapColor(data,max,min);
+                    nineBoxes[i].setOptions({
+                        fillColor:color
+                    })
+                }
+             }
+        }
+
+        function mapColor(data,max,min){
+            var colorMap = {
+                "0":"#f44336",
+                "1":"#ff9800",
+                "2":"#ffc107",
+                "3":"#ffeb3b",
+                "4":"#cddc39",
+                "5":"#8bc34a",
+                "6":"#03a9f4",
+                "7":"#00bcd4",
+                "8":"#673ab7",
+                "9":"#9c27b0",
+                "10":"#9c27b0"
+            };
+            var size = Object.getOwnPropertyNames(colorMap).length;
+            var index = Math.floor((data - min)/ (max - min) * (size - 1));
+            return colorMap[ index + ''];
         }
 
         //AMap.plugin
@@ -589,7 +679,7 @@
         });
 
         //AMap.plugin
-        //不行路径规划组件
+        //步行路径规划组件
         AMap.plugin('AMap.Walking', function() {
             walking = new AMap.Walking ({
                 // 驾车路线规划策略，AMap.DrivingPolicy.LEAST_TIME是最快捷模式
@@ -631,7 +721,6 @@
         }
 
         //Tool
-        //按钮单圈的扩展写法，支持多个按钮，添加选取样式的设置
         function bindClearInputBtnEvent(clearBtnId,clearInputIdArray,extendFunction){
             $(clearBtnId).click(function () {
                 clearInputIdArray.forEach(function (clearInputId) {
@@ -645,6 +734,7 @@
         }
 
         //Tool
+        //按钮单圈的扩展写法，支持多个按钮，添加选取样式的设置
         function bindSingleChoiceBtnsEvent(buttonsDivId,ignoreIdArray,extendFunction) {
             //设置默认值
             ignoreIdArray=ignoreIdArray||[];
@@ -676,11 +766,29 @@
         }
 
         //Tool
-        function bindKeyDownCheckEvent(inputId){
+        function bindKeyUpCheckEvent(inputId){
             $(inputId).keyup(function (e) {
                 validateInput(inputId);
             })
         }
+
+        //Tool
+        function bindBlurRefreshTimeLineEvent(jqueryId){
+            $(jqueryId).blur(function (e) {
+                refreshTimeLine();
+            });
+        }
+
+        //Tool
+        function bindEnterRefreshTimeLineEvent(jqueryId){
+            $(jqueryId).keyup(function (e) {
+                if(e.keyCode ==13){
+                    refreshTimeLine();
+                    $(this).blur();
+                }
+            });
+        }
+
 
         //bind
         function bindClearInputBtn(){
@@ -697,8 +805,26 @@
 
         //bind
         function bindKeyDownCheck() {
-            bindKeyDownCheckEvent("#sideLength");
-            bindKeyDownCheckEvent("#interval");
+            bindKeyUpCheckEvent("#sideLength");
+            bindKeyUpCheckEvent("#interval");
+            bindKeyUpCheckEvent("#intervalNum");
+            bindKeyUpCheckEvent("#predictCertainTime");
+            bindKeyUpCheckEvent("#intervalNum");
+        }
+
+        function bindBlurRefreshTimeLine(){
+            bindBlurRefreshTimeLineEvent("#interval");
+            bindBlurRefreshTimeLineEvent("#intervalNum");
+            bindBlurRefreshTimeLineEvent("#predictCertainTime");
+            bindBlurRefreshTimeLineEvent("#intervalNum");
+        }
+
+        function bindEnterRefreshTimeLine(){
+
+            bindEnterRefreshTimeLineEvent("#interval");
+            bindEnterRefreshTimeLineEvent("#intervalNum");
+            bindEnterRefreshTimeLineEvent("#predictCertainTime");
+            bindEnterRefreshTimeLineEvent("#intervalNum");
         }
 
         function initStartDate(){
@@ -715,8 +841,11 @@
             bindClearInputBtn();
             bindSingleChoiceBtns();
             bindKeyDownCheck();
+            bindBlurRefreshTimeLine();
+            bindEnterRefreshTimeLine();
             initStartDate();
             initUnitHint();
+            refreshTimeLine();
         }
 
         //callInit
@@ -728,6 +857,37 @@
 
 </script>
 <div id="container"></div>
+
+<div id="timeLine">
+    <section class="cd-horizontal-timeline">
+        <div class="timeline">
+            <div class="events-wrapper">
+                <div class="events" id="events">
+                    <ol>
+                        <li><a href="#0" data-date="16/08/2014" class="selected">1856 Jan</a></li>
+                        <li><a href="#0" data-date="28/02/2014" hidden>28 Feb</a></li>
+                        <li><a href="#0" data-date="20/04/2014" hidden>TTTTT</a></li>
+                        <li><a href="#0" data-date="20/05/2014">20 May</a></li>
+                        <li><a href="#0" data-date="09/07/2014">09 Jul</a></li>
+                        <li><a href="#0" data-date="30/08/2014">30 Aug</a></li>
+                        <li><a href="#0" data-date="15/09/2014">15 Sep</a></li>
+                        <li><a href="#0" data-date="01/11/2014">01 Nov</a></li>
+                        <li><a href="#0" data-date="10/12/2014">10 Dec</a></li>
+                        <li><a href="#0" data-date="19/01/2015">29 Jan</a></li>
+                        <li><a href="#0" data-date="03/03/2015">3 Mar</a></li>
+                    </ol>
+                    <span class="filling-line" aria-hidden="true"></span>
+                </div> <!-- .events -->
+            </div> <!-- .events-wrapper -->
+
+            <ul class="cd-timeline-navigation">
+                <li><a href="#0" class="prev inactive">Prev</a></li>
+                <li><a href="#0" class="next">Next</a></li>
+            </ul> <!-- .cd-timeline-navigation -->
+        </div> <!-- .timeline -->
+    </section>
+</div>
+
 <div class="input-card" style="width: auto;">
     <div class="input-item">
         <span class="input-item-text">用户坐标</span>
@@ -820,8 +980,8 @@
         <button class="btn" id="predictPickUpSpot">预测乘车地点</button>
 
         <div class="input-item">
-            <span class="input-item-text">预测时间段</span>
-            <input id='predictCertainTime' name="predictCertainTime" class="input-item-copy" type="text" value="1" regr="^\d+$">
+            <span class="input-item-text">预测时间段数</span>
+            <input id='predictCertainTime' name="predictCertainTime" class="input-item-copy" type="text" value="4" regr="^\d+$">
         </div>
 
         <div class="input-item">
