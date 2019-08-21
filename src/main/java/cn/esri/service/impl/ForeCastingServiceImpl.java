@@ -1,6 +1,7 @@
 package cn.esri.service.impl;
 
 import cn.esri.service.ForecastingService;
+import cn.esri.utils.MathUtil;
 import cn.esri.utils.arima.ARIMA;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -63,6 +64,14 @@ public class ForeCastingServiceImpl implements ForecastingService {
         // 开始预测
         double[] dataArray = new double[data.length+steps];
         System.arraycopy(data, 0, dataArray, 0, data.length);
+        double max = MathUtil.getMaxInArray(dataArray);
+        if(max <= 0){
+            for(int i = 0; i < steps ; i++){
+                dataArray[data.length+i] = 0;
+            }
+            return dataArray;
+        }
+
         for(int i=0;i<steps;i++){
             double[] trainData =  new double[data.length+i];
             System.arraycopy(dataArray, 0, trainData, 0, data.length+i);

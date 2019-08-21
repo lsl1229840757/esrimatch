@@ -1,7 +1,9 @@
 package cn.esri.controller;
 
+import cn.esri.service.ForecastingService;
 import cn.esri.service.IserverService;
 import cn.esri.service.StatusService;
+import cn.esri.service.impl.ForeCastingServiceImpl;
 import cn.esri.service.impl.IserverServiceImpl;
 import cn.esri.service.impl.StatusServiceImpl;
 import cn.esri.vo.Point;
@@ -15,6 +17,19 @@ public class test {
 
     public static void main(String[] args) throws Exception{
 
+        test2();
+    }
+
+    private static List<Integer> addData(String data){
+        List<Integer> result = new ArrayList<>();
+        String[] d = data.trim().split(",");
+        for(int i =0 ; i < d.length ; i++){
+            result.add(Integer.parseInt(d[i].trim()));
+        }
+        return result;
+    }
+
+    private static void test1() throws Exception{
         StatusService statusService = new StatusServiceImpl();
         Map<String, List<Integer>> searchCountResult = new LinkedHashMap<>();
         searchCountResult.put("2016-08-01 13:00:00 - 2016-08-01 14:00:00",addData("1953, 381, 1171, 2045, 808, 881, 3146, 3349, 2051"));
@@ -35,12 +50,30 @@ public class test {
         System.out.println(predictCountsResult);
     }
 
-    private static List<Integer> addData(String data){
-        List<Integer> result = new ArrayList<>();
-        String[] d = data.trim().split(",");
-        for(int i =0 ; i < d.length ; i++){
-            result.add(Integer.parseInt(d[i].trim()));
-        }
-        return result;
+    private static void test2(){
+
+        ForecastingService forecastingService = new ForeCastingServiceImpl();
+        double[] data = new double[15];
+        data[0] = 11;
+        data[1] = 1;
+        data[2] = 2;
+        data[3] = 3;
+        data[4] = 4;
+        data[5] = 5;
+        data[6] = 6;
+        data[7] = 11;
+        data[8] = 1;
+        data[9] = 2;
+        data[10] = 3;
+        data[11] = 4;
+        data[12] = 5;
+        data[13] = 6;
+        data[14] = 2;
+       // data[15] = 3;
+        //data[16] = 4;
+       // data[17] = 5;
+        //data[18] = 6;
+        double[] result = forecastingService.forecastDoubleArray(data);
+        System.out.println(result);
     }
 }

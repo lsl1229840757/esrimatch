@@ -10,6 +10,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -25,6 +26,9 @@ public class StatusServiceImpl implements StatusService {
 
     @Resource
     ForecastingService forecastingService;
+
+    @Resource(name = "taskExecutor")
+    TaskExecutor taskExecutor;
 
     // TODO 这里的查询暂时没有开事务管理
     @Override
@@ -54,6 +58,11 @@ public class StatusServiceImpl implements StatusService {
         return statuses;
     }
 
+    /**
+     *  根据geometry在数据库中查询对应的缓冲区
+     * @param polylinesQuery 缓冲区查询参数，包含查询geometry和缓冲区半径radius
+     * @return 返回缓冲区数组
+     */
     @Override
     public List<String> createBuffers(PolylinesQuery polylinesQuery) {
         SqlSession sqlSession = sessionFactory.openSession();
@@ -74,6 +83,11 @@ public class StatusServiceImpl implements StatusService {
         return bufferJsonArray;
     }
 
+    /**
+     *
+     * @param buffersQuery 用于做相交查询的查询参数
+     * @return 在缓冲区中查询到的车辆状态详细信息
+     */
     @Override
     public List<Status> searchByBuffers(BuffersQuery buffersQuery) {
         SqlSession session = sessionFactory.openSession();
@@ -101,6 +115,11 @@ public class StatusServiceImpl implements StatusService {
         return statuses;
     }
 
+    /**
+     * 根据PredictQuery中提供的参数查询车辆历史数据
+     * @param predictQuery 用于查询预测数据的查询参数
+     * @return 历史数据查询结果， 时间段为key，查询结果为value， List<List<Status>>中储存各查询网格的车辆状态详细信息
+     */
     @Override
     public Map<String, List<List<Status>>> searchPickUpSpotStatusData(PredictQuery predictQuery) {
         SqlSession session = sessionFactory.openSession();
@@ -132,7 +151,14 @@ public class StatusServiceImpl implements StatusService {
         }
         return result;
     }
-
+    /**
+     * 根据PredictQuery中提供的参数查询车辆历史数据
+     * @param predictQuery 用于查询预测数据的查询参数
+     * @return 历史数据的查询结果
+     *          时间段为key
+     *          查询结果为value
+     *          List<List<Status>>为储存各网格中车辆状态的详细信息的数组
+     */
     @Override
     public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) {
         SqlSession session = sessionFactory.openSession();
@@ -143,16 +169,22 @@ public class StatusServiceImpl implements StatusService {
             List<Integer> countArray = new ArrayList<Integer>();
             Date start_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*i);
             Date end_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*(i+1));
-            for(int j = 0; j < predictBoxJsonArray.size(); j++){
-                JSONObject predictBoxJson = predictBoxJsonArray.getJSONObject(j);
-                String predictBoxGeometry = predictBoxJson.getString("geometry");
-                Map<String, Object> queryMap = new HashMap<>();
-                queryMap.put("start_time", start_time);
-                queryMap.put("end_time", end_time);
-                queryMap.put("buffers_geojson", predictBoxGeometry);
-                int count = session.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
-                countArray.add(count);
-            }
+
+            taskExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    for(int j = 0; j < predictBoxJsonArray.size(); j++){
+                        JSONObject predictBoxJson = predictBoxJsonArray.getJSONObject(j);
+                        String predictBoxGeometry = predictBoxJson.getString("geometry");
+                        Map<String, Object> queryMap = new HashMap<>();
+                        queryMap.put("start_time", start_time);
+                        queryMap.put("end_time", end_time);
+                        queryMap.put("buffers_geojson", predictBoxGeometry);
+                        int count = session.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
+                        countArray.add(count);
+                    }
+                }
+            });
             result.put(sdf.format(start_time)  + " - " + sdf.format(end_time),countArray);
         }
         return result;
