@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.lang.*;
 import java.util.concurrent.CountDownLatch;
 
 @Service
@@ -191,7 +192,6 @@ public class StatusServiceImpl implements StatusService {
         }
         return result;
     }
-
     @Override
     public Map<Integer, Map<String, Double>> predictByStatus(Map<Integer, Map<String, List<Status>>> boxStatusData,PredictQuery predictQuery) {
        //TODO
@@ -214,8 +214,6 @@ public class StatusServiceImpl implements StatusService {
             boxStatusData.put(sdf.format(start_time) + " - " + sdf.format(end_time),forecastCertainTime);
             temp.add(forecastCertainTime);
         }
-
-        forecastingService = new ForeCastingServiceImpl();
         for(int i = 0; i < featureArray.size(); i++){
             //准备预测数据
             double[] predictPreData = new double[predictQuery.getIntervalNum()];

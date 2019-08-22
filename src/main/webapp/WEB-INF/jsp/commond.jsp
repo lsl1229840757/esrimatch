@@ -281,7 +281,7 @@
                     if(pattern === "nineBoxes"){
                         var centerPoint = userPoint.getPosition();
                         var sideLength = parseFloat($("#sideLength").val()) ;
-                        centerPointArray = getNineBoxCenterArray(centerPoint,sideLength);
+                        centerPointArray = getNineBoxCenterArray(centerPoint,sideLength,2);
                         nineBoxBoundArray = getNineBoxBoundArray(centerPointArray,sideLength);
                         map.remove(nineBoxes);
                         nineBoxes = [];
@@ -339,21 +339,28 @@
         }
 
         //Tool
-        function getNineBoxCenterArray(centerPoint,sideLength){
+        function getNineBoxCenterArray(centerPoint,sideLength,sideNum){
             var centerPointArray = [];
             var lng = centerPoint.getLng();
             var lat = centerPoint.getLat();
-            centerPointArray.push([lng - sideLength,lat - sideLength]);
-            centerPointArray.push([lng,lat - sideLength]);
-            centerPointArray.push([lng + sideLength,lat - sideLength]);
-            centerPointArray.push([lng - sideLength,lat]);
-            centerPointArray.push([lng,lat]);
-            centerPointArray.push([lng + sideLength,lat]);
-            centerPointArray.push([lng - sideLength,lat + sideLength]);
-            centerPointArray.push([lng,lat + sideLength]);
-            centerPointArray.push([lng + sideLength,lat + sideLength]);
+            if(sideNum % 2  == 0){
+                //偶数
+                var offset = -(Math.floor(sideNum / 2) - 0.5);
+                for(var i = 0 ; i < sideNum; i++){
+                    for(var j = 0; j < sideNum; j++){
+                        centerPointArray.push([lng + (i + offset)*sideLength,lat + (j + offset)*sideLength]);
+                    }
+                }
+            }else{
+                //奇数
+                var offset = -Math.floor(sideNum / 2);
+                for(var i = 0 ; i < sideNum; i++){
+                    for(var j = 0; j < sideNum; j++){
+                        centerPointArray.push([lng + (i + offset)*sideLength,lat + (j + offset)*sideLength]);
+                    }
+                }
+            }
             return centerPointArray;
-
         }
 
         //bind
@@ -376,8 +383,7 @@
                             data:JSON.stringify(predictParam),
                             async: true,
                             success: function (result) {
-                                data = result[0];
-                                jQuery.each(data,function (key,value) {
+                                jQuery.each(result,function (key,value) {
                                     statusCountData.push(value);
                                 })
                                 refreshTimeLine();
