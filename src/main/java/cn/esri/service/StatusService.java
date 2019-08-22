@@ -20,7 +20,7 @@ public interface StatusService {
 
     public Map<String, List<List<Status>>> searchPickUpSpotStatusData(PredictQuery predictQuery);
 
-    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery, CountDownLatch countDownLatch) ;
+    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) ;
 
     Map<Integer,Map<String,Double>> predictByStatus(Map<Integer,Map<String,List<Status>>> boxStatusData,PredictQuery predictQuery);
 

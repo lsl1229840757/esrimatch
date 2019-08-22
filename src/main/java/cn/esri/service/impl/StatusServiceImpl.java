@@ -10,6 +10,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -23,9 +24,9 @@ import java.util.concurrent.CountDownLatch;
 @Service
 public class StatusServiceImpl implements StatusService {
 
+    //自动控制session
     @Resource
-    SqlSessionFactory sessionFactory;
-
+    SqlSessionTemplate session;
     @Resource
     ForecastingService forecastingService;
 
@@ -35,7 +36,6 @@ public class StatusServiceImpl implements StatusService {
     // TODO 这里的查询暂时没有开事务管理
     @Override
     public List<Status> searchByDistinct(DistinctQuery distinctQuery) {
-        SqlSession session = sessionFactory.openSession();
         JSONArray distinctJsonArray = JSONArray.fromObject(distinctQuery.getDistrict_geojson());
         List<Status> statuses = new ArrayList<>();
         // 因为有可能有多个polygon所以持久层用map处理
@@ -67,7 +67,6 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public List<String> createBuffers(PolylinesQuery polylinesQuery) {
-        SqlSession sqlSession = sessionFactory.openSession();
         List<String> bufferJsonArray = new ArrayList<String>();
         Map<String,Object> queryMap = new HashMap<String, Object>();
         JSONArray featureJsonArray = JSONArray.fromObject(polylinesQuery.getPolylines_geojson());
@@ -79,7 +78,7 @@ public class StatusServiceImpl implements StatusService {
             }
             queryMap.put("polylines_geojson",geometryJsonStr);
             queryMap.put("radius",polylinesQuery.getRadius());
-            Map<String,Object> results =  sqlSession.selectOne("cn.esri.mapper.StatusNS.createBuffers",queryMap);
+            Map<String,Object> results =  session.selectOne("cn.esri.mapper.StatusNS.createBuffers",queryMap);
             bufferJsonArray.add((String) results.get("buffers_geojson"));
         }
         return bufferJsonArray;
@@ -92,7 +91,6 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public List<Status> searchByBuffers(BuffersQuery buffersQuery) {
-        SqlSession session = sessionFactory.openSession();
         JSONArray BufferFeatureJsonArray = JSONArray.fromObject(buffersQuery.getBuffers_geojson());
         List<Status> statuses = new ArrayList<>();
         // 因为有可能有多个polygon所以持久层用map处理
@@ -124,7 +122,6 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public Map<String, List<List<Status>>> searchPickUpSpotStatusData(PredictQuery predictQuery) {
-        SqlSession session = sessionFactory.openSession();
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
         Map<String, List<List<Status>>> result = new LinkedHashMap<String, List<List<Status>>>();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -162,8 +159,8 @@ public class StatusServiceImpl implements StatusService {
      *          List<List<Status>>为储存各网格中车辆状态的详细信息的数组
      */
     @Override
-    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery, CountDownLatch countDownLatch) {
-        SqlSession session = sessionFactory.openSession();
+    public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) {
+        CountDownLatch countDownLatch = new CountDownLatch(predictQuery.getIntervalNum());
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
         Map<String, List<Integer>> result = new LinkedHashMap<String, List<Integer>>();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -171,7 +168,6 @@ public class StatusServiceImpl implements StatusService {
             List<Integer> countArray = new ArrayList<Integer>();
             Date start_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*i);
             Date end_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*(i+1));
-
             taskExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -186,10 +182,18 @@ public class StatusServiceImpl implements StatusService {
                         countArray.add(count);
                     }
                     countDownLatch.countDown();
+                    result.put(sdf.format(start_time)  + " - " + sdf.format(end_time),countArray);
                 }
             });
-            result.put(sdf.format(start_time)  + " - " + sdf.format(end_time),countArray);
         }
+
+        //线程等待放在service层，方便事务控制
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return result;
     }
     @Override
