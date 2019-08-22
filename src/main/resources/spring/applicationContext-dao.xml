@@ -18,10 +18,20 @@
         <property name="url" value="${jdbc.url}" />
         <property name="username" value="${jdbc.username}" />
         <property name="password" value="${jdbc.password}" />
-        <property name="maxActive" value="${pool.maxActive}"/>
+        <property name="maxActive" value="${pool.maxActive}" />
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="${pool.maxWait}" />
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="${pool.initialSize}" />
+        <property name="minIdle" value="${pool.minIdle}" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="${pool.timeBetweenEvictionRunsMillis}" />
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="${pool.minEvictableIdleTimeMillis}" />
+        <property name="testWhileIdle" value="${pool.testWhileIdle}" />
         <!-- 这里建议配置为TRUE，防止取到的连接不可用 -->
-        <property name="testOnBorrow" value="true" />
-        <property name="testOnReturn" value="false" />
+        <property name="testOnBorrow" value="${pool.testOnBorrow}" />
+        <property name="testOnReturn" value="${pool.testOnReturn}" />
     </bean>
 
     <!-- 配置SqlSessionFactory -->
