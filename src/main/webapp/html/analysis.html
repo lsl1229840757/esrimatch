@@ -33,6 +33,7 @@
             <span>总路程：{{length_total}}KM</span>
             <span>载客次数：{{customer_count}}</span>
             <span>载客时间：{{customer_time}}Min</span>
+            <span>载客里程：{{customer_length}}KM</span>
         </div>
         <div v-else>{{msg}}</div>
     </div>
@@ -49,7 +50,8 @@
                 length_total: null,
                 customer_count: null,
                 customer_time: null,
-                msg:'',
+                customer_length: null,
+                msg: '',
             },
             methods: {
                 query: function () {
@@ -66,7 +68,8 @@
         async function main(id, day, span = 15) {
 
             // 获取车数据
-            let result = await fetch(`http://piaoyang.xyz:8080/traffic-system/track/get_by_date?id=${id}&day=${day}`);
+            let result = await fetch(
+                `http://piaoyang.xyz:8080/traffic-system/track/get_by_date?id=${id}&day=${day}`);
             result = await result.json()
             console.log(result);
 
@@ -125,11 +128,14 @@
             let customer_count = 0;
             // 载客总时间 - 毫秒
             let customer_time = 0;
+            // 载客里程
+            let customer_length = 0;
             // 载客时段
             let customer_arr = [];
             // 临时载客变量
             let hasCustomer = false;
             let beginCustomer = 0;
+            let pathCustomer = [];
             result.forEach(row => {
                 // 如果没有载客，状态变成载客
                 if (!hasCustomer && row.passenger_status == 1) {
@@ -143,10 +149,23 @@
                     customer_time += row.receive_time - beginCustomer;
                     customer_arr.push([beginCustomer, row.receive_time]);
                 }
+                // 如果载客，添加路径点
+                if (hasCustomer) {
+                    pathCustomer.push([row.lon, row.lat]);
+                }
+                // 如果未载客，计算路径
+                if (!hasCustomer && pathCustomer.length != 0) {
+                    let line = turf.lineString(pathCustomer);
+                    let length = turf.length(line, {
+                        units: 'kilometers'
+                    });
+                    customer_length += length;
+                    pathCustomer = [];
+                }
             });
             app.customer_count = customer_count;
             app.customer_time = (customer_time / 1000 / 60).toFixed(2);
-
+            app.customer_length = customer_length.toFixed(3);
 
             // 指定图表的配置项和数据
             var option = {
