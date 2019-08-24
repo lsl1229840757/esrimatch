@@ -183,9 +183,6 @@ public class StatusServiceImpl implements StatusService {
                     }
                     countDownLatch.countDown();
                     result.put(sdf.format(start_time)  + " - " + sdf.format(end_time),countArray);
-                    if(countDownLatch.getCount() == 0){
-                        session.close();
-                    }
                 }
             });
         }

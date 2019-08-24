@@ -80,6 +80,6 @@
     </tx:advice>
 
     <aop:config>
-        <aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.esri.service..*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.esri.service.*.*(..))"/>
     </aop:config>
 </beans>

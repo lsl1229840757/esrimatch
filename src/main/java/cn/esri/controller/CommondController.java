@@ -17,7 +17,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 @Controller
 @RequestMapping("/commond/*")

@@ -35,11 +35,14 @@
     </bean>
 
     <!-- 配置SqlSessionFactory -->
-    <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
         <!-- 设置MyBatis核心配置文件 -->
         <property name="configLocation" value="classpath:mybatis/sqlMapConfig.xml" />
              <!-- 设置数据源 -->
         <property name="dataSource" ref="dataSource" />
+        <property name="transactionFactory">
+            <bean class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory" />
+        </property>
     </bean>
 
     <!-- 配置Mapper扫描 -->
@@ -48,5 +51,35 @@
         <property name="basePackage" value="cn.esri.mapper" />
     </bean>
 
+    <!--配置sqlSessionTemplate：通过带参数的构造方法创建对象 -->
+    <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+        <!-- 以sqlSessionFactory为参数传入构造函数中 -->
+        <constructor-arg ref="sqlSessionFactory" />
+        <!-- mybatis执行器，取值范围是SIMPLE/REUSE/BATCH三种类型 -->
+        <constructor-arg value="BATCH" />
+    </bean>
+    <!-- 配置事务管理 -->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <constructor-arg ref="dataSource" />
+    </bean>
 
+    <!-- 事务特性 -->
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="save*"/>
+            <tx:method name="update*"/>
+            <tx:method name="delete*"/>
+            <tx:method name="add*"/>
+            <tx:method name="modify*"/>
+            <tx:method name="remove*"/>
+            <!-- 查询 -->
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="query*" read-only="true"/>
+            <tx:method name="search*" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.esri.service.*.*(..))"/>
+    </aop:config>
 </beans>

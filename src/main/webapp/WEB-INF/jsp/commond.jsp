@@ -12,98 +12,7 @@
 </head>
 <body>
 
-<style>
-    html,body,#container {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-    }
-    #container {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 80%;
-    }
 
-     .input-item-text{
-        width:7rem;
-    }
-    .input-item-copy{
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        flex: 1 1 auto;
-        width: 1%;
-        margin-bottom: 0;
-        background: #fff;
-        padding: .375rem .75rem;
-        display: inline-block;
-        line-height: 1.5;
-        color: #495057;
-        vertical-align: middle;
-        border: 1px solid #ced4da;
-        -webkit-appearance: none;
-        height: calc(2.2rem + 2px);
-        font-family: inherit;
-        font-size: inherit;
-        overflow: visible;
-        text-transform: none;
-        -webkit-writing-mode: horizontal-tb !important;
-        text-rendering: auto;
-        letter-spacing: normal;
-        word-spacing: normal;
-        text-indent: 0;
-        text-shadow: none;
-        text-align: start;
-        -webkit-rtl-ordering: logical;
-        cursor: text;
-    }
-
-    input[type=radio]{
-        margin: 0.5rem 0.5rem 0 0;
-    }
-
-    #boxesCreationMethod,boxesManagement{
-        float: left;
-        width: 50%;
-    }
-    .btn{
-        margin-top:3%;
-    }
-
-    .part{
-        border-bottom : 1px solid #6699cc;
-        padding: 10px;
-    }
-
-    #unit{
-        padding-left: 10px;
-    }
-    #unit span{
-        margin-right: 10px;
-    }
-
-    .radio{
-        padding-bottom:5px;
-    }
-
-    .btn-selected {
-        color: #fff;
-        background-color: #25A5F7;
-        border-color: #25A5F7;
-    }
-
-    #timeLine{
-        float: left;
-        width: 100%;
-        height: 20%;
-    }
-
-    #cd-horizontal-timeline{
-        margin: 0;
-    }
-
-</style>
 <script>
     $(function(){
 
@@ -859,42 +768,157 @@
         //callInit
         init();
     });
-
-
-
-
 </script>
-<div id="container"></div>
 
-<div id="timeLine">
-    <section class="cd-horizontal-timeline">
-        <div class="timeline">
-            <div class="events-wrapper">
-                <div class="events" id="events">
-                    <ol>
-                        <li><a href="#0" data-date="16/08/2014" class="selected">1856 Jan</a></li>
-                        <li><a href="#0" data-date="28/02/2014" hidden>28 Feb</a></li>
-                        <li><a href="#0" data-date="20/04/2014" hidden>TTTTT</a></li>
-                        <li><a href="#0" data-date="20/05/2014">20 May</a></li>
-                        <li><a href="#0" data-date="09/07/2014">09 Jul</a></li>
-                        <li><a href="#0" data-date="30/08/2014">30 Aug</a></li>
-                        <li><a href="#0" data-date="15/09/2014">15 Sep</a></li>
-                        <li><a href="#0" data-date="01/11/2014">01 Nov</a></li>
-                        <li><a href="#0" data-date="10/12/2014">10 Dec</a></li>
-                        <li><a href="#0" data-date="19/01/2015">29 Jan</a></li>
-                        <li><a href="#0" data-date="03/03/2015">3 Mar</a></li>
-                    </ol>
-                    <span class="filling-line" aria-hidden="true"></span>
-                </div> <!-- .events -->
-            </div> <!-- .events-wrapper -->
+<style>
+    html,body,#container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+    #container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
 
-            <ul class="cd-timeline-navigation">
-                <li><a href="#0" class="prev inactive">Prev</a></li>
-                <li><a href="#0" class="next">Next</a></li>
-            </ul> <!-- .cd-timeline-navigation -->
-        </div> <!-- .timeline -->
-    </section>
+    .input-item-text{
+        width:7rem;
+    }
+    .input-item-copy{
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        flex: 1 1 auto;
+        width: 1%;
+        margin-bottom: 0;
+        background: #fff;
+        padding: .375rem .75rem;
+        display: inline-block;
+        line-height: 1.5;
+        color: #495057;
+        vertical-align: middle;
+        border: 1px solid #ced4da;
+        -webkit-appearance: none;
+        height: calc(2.2rem + 2px);
+        font-family: inherit;
+        font-size: inherit;
+        overflow: visible;
+        text-transform: none;
+        -webkit-writing-mode: horizontal-tb !important;
+        text-rendering: auto;
+        letter-spacing: normal;
+        word-spacing: normal;
+        text-indent: 0;
+        text-shadow: none;
+        text-align: start;
+        -webkit-rtl-ordering: logical;
+        cursor: text;
+    }
+
+    input[type=radio]{
+        margin: 0.5rem 0.5rem 0 0;
+    }
+
+    #boxesCreationMethod,boxesManagement{
+        float: left;
+        width: 50%;
+    }
+    .btn{
+        margin-top:3%;
+    }
+
+    .part{
+        border-bottom : 1px solid #6699cc;
+        padding: 10px;
+    }
+
+    #unit{
+        padding-left: 10px;
+    }
+    #unit span{
+        margin-right: 10px;
+    }
+
+    .radio{
+        padding-bottom:5px;
+    }
+
+    .btn-selected {
+        color: #fff;
+        background-color: #25A5F7;
+        border-color: #25A5F7;
+    }
+
+    #timeLine{
+        margin-top: 35%;
+        float: left;
+        width: 65%;
+        height: 20%;
+    }
+
+    .wrapper {
+        min-height: 100%;
+        margin-bottom: -15%; /* 等于footer的高度 */
+    }
+    .footer, .push {
+        height: 15%;
+    }
+
+    #cd-horizontal-timeline{
+        margin: 0;
+    }
+
+    .timeline{
+        z-index: 1;
+    }
+
+    .prev inactive, next{
+        margin: 0 10px;
+    }
+
+</style>
+
+<div id="container">
+    <div class="wrapper">
+        <!-- content -->
+        <div class="push"></div>
+    </div>
+
+    <div id="footer timeLine" style="width: 80%;">
+        <section class="cd-horizontal-timeline">
+            <div class="timeline input-card">
+                <div class="events-wrapper">
+                    <div class="events" id="events">
+                        <ol>
+                            <li><a href="#0" data-date="16/08/2014" class="selected">1856 Jan</a></li>
+                            <li><a href="#0" data-date="28/02/2014" hidden>28 Feb</a></li>
+                            <li><a href="#0" data-date="20/04/2014" hidden>TTTTT</a></li>
+                            <li><a href="#0" data-date="20/05/2014">20 May</a></li>
+                            <li><a href="#0" data-date="09/07/2014">09 Jul</a></li>
+                            <li><a href="#0" data-date="30/08/2014">30 Aug</a></li>
+                            <li><a href="#0" data-date="15/09/2014">15 Sep</a></li>
+                            <li><a href="#0" data-date="01/11/2014">01 Nov</a></li>
+                            <li><a href="#0" data-date="10/12/2014">10 Dec</a></li>
+                            <li><a href="#0" data-date="19/01/2015">29 Jan</a></li>
+                            <li><a href="#0" data-date="03/03/2015">3 Mar</a></li>
+                        </ol>
+                        <span class="filling-line" aria-hidden="true"></span>
+                    </div> <!-- .events -->
+                </div> <!-- .events-wrapper -->
+
+                <ul class="cd-timeline-navigation">
+                    <li><a href="#0" class="prev inactive" style="margin: 0 10px;">Prev</a></li>
+                    <li><a href="#0" class="next" style="margin: 0 10px;">Next</a></li>
+                </ul> <!-- .cd-timeline-navigation -->
+            </div> <!-- .timeline -->
+        </section>
+    </div>
 </div>
+
+<div class="input-card" style="width: auto;">
+</div>>
 
 <div class="input-card" style="width: auto;">
     <div class="input-item">
