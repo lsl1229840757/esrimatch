@@ -2,6 +2,7 @@ package cn.esri.service.impl;
 
 import cn.esri.service.ForecastingService;
 import cn.esri.service.StatusService;
+import cn.esri.utils.MathUtil;
 import cn.esri.utils.Transform;
 import cn.esri.vo.*;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
@@ -137,7 +138,7 @@ public class StatusServiceImpl implements StatusService {
                 queryMap.put("start_time", start_time);
                 queryMap.put("end_time", end_time);
                 queryMap.put("buffers_geojson", predictBoxGeometry);
-                statusesResult.addAll(session.selectList("cn.esri.mapper.StatusNS.searchByBuffers", queryMap));
+                statusesResult.addAll(this.session.selectList("cn.esri.mapper.StatusNS.searchByBuffers", queryMap));
                 // 坐标转换,把wgs坐标转为GCJ02
                 for (Status status:statusesResult){
                     double[] lonlat = Transform.transformWGS84ToGCJ02(status.getLon(), status.getLat());
@@ -160,18 +161,29 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) {
-        CountDownLatch countDownLatch = new CountDownLatch(predictQuery.getIntervalNum());
+        // 以区域优先查询
+        int boxNum = JSONArray.fromObject(predictQuery.getGeometry_geojson()).size();
+        // 一个区域执行两次,首末两次查询
+        CountDownLatch countDownLatch = new CountDownLatch(2);
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
         Map<String, List<Integer>> result = new LinkedHashMap<String, List<Integer>>();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        for (int i = 0;i < predictQuery.getIntervalNum(); i ++){
-            List<Integer> countArray = new ArrayList<Integer>();
+
+        // 开始时段的车辆统计
+        List<Integer> start_period = new ArrayList<>();
+        List<Integer> end_period = new ArrayList<>();
+        for (int i = 0;i < predictQuery.getIntervalNum(); i++){
+            // 只是在首末执行查询
+            if(i!=0 && i!=predictQuery.getIntervalNum()-1)
+                continue;
             Date start_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*i);
             Date end_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*(i+1));
+            final int iFinal = i;
             taskExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
                     for(int j = 0; j < predictBoxJsonArray.size(); j++){
+                         // 当最后一段和第一段才查询
                         JSONObject predictBoxJson = predictBoxJsonArray.getJSONObject(j);
                         String predictBoxGeometry = predictBoxJson.getString("geometry");
                         Map<String, Object> queryMap = new HashMap<>();
@@ -179,10 +191,12 @@ public class StatusServiceImpl implements StatusService {
                         queryMap.put("end_time", end_time);
                         queryMap.put("buffers_geojson", predictBoxGeometry);
                         int count = session.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
-                        countArray.add(count);
+                        if(iFinal == 0)
+                            start_period.add(count);
+                        else
+                            end_period.add(count);
                     }
                     countDownLatch.countDown();
-                    result.put(sdf.format(start_time)  + " - " + sdf.format(end_time),countArray);
                 }
             });
         }
@@ -194,6 +208,14 @@ public class StatusServiceImpl implements StatusService {
             e.printStackTrace();
         }
 
+        List<List<Integer>> fitResult = MathUtil.linearFitTimeFirst(start_period, end_period, predictQuery.getIntervalNum());
+        for (int i = 0;i < predictQuery.getIntervalNum(); i++){
+            Date start_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*i);
+            Date end_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*(i+1));
+            List<Integer> countArray = fitResult.get(i);
+            result.put(sdf.format(start_time)  + " - " + sdf.format(end_time),countArray);
+        }
+        System.out.println("结果为:"+result);
         return result;
     }
     @Override
