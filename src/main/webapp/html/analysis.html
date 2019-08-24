@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #main {
+            width: 100%;
+            height: 80%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main"></div>
+    <div id="app">
+        <input type="number" min="0" max="400" v-model.number='id' placeholder="车ID">
+        <input type="number " min="0" max="29" v-model.number='day' placeholder="天数">
+        <input type="number" v-model.number='span' placeholder="跨度">
+        <button @click='query'>查询</button>
+        <div v-if='msg != ""'>
+            <span>总路程：{{length_total}}KM</span>
+            <span>载客次数：{{customer_count}}</span>
+            <span>载客时间：{{customer_time}}Min</span>
+        </div>
+        <div v-else>{{msg}}</div>
+    </div>
+    <script src="./vue.js"></script>
+    <script src="./turf.js"></script>
+    <script src="./echart.js"></script>
+    <script>
+        let app = new Vue({
+            el: '#app',
+            data: {
+                id: null,
+                day: null,
+                span: null,
+                length_total: null,
+                customer_count: null,
+                customer_time: null,
+                msg:'',
+            },
+            methods: {
+                query: function () {
+                    if (this.span) {
+                        main(this.id, this.day, this.span);
+                    } else {
+                        main(this.id, this.day);
+
+                    }
+                }
+            }
+        })
+
+        async function main(id, day, span = 15) {
+            app.msg = '加载中，请稍等！';
+
+            // 获取车数据
+            let result = await fetch(`http://localhost:8080/traffic-system/track/get_by_date?id=${id}&day=${day}`);
+            result = await result.json()
+            console.log(result);
+
+            // 24小时，60分钟 1440条  减少数据量到1440~2880
+            let subset_arr = [];
+            // if (result.length > 1440 * 2) {
+            //     let span = Math.floor(result.length / 1440);
+            //     for (let i = 0; i < result.length; i += span) {
+            //         subset_arr.push(result[i]);
+            //     }
+            // } else {
+            //     subset_arr = result;
+            // }
+            subset_arr = result;
+
+            // 总路程
+            let length_total = 0;
+            // 坐标数组
+            let path_arr = subset_arr.map(row => [row.lon, row.lat]);
+
+            // 每5条计算一次
+            let velocity_arr = [];
+            let time_arr = [];
+            let display_data = [];
+            for (let i = 0; i < path_arr.length - span; i += span) {
+                // 切分数组，切成跨度大小
+                let arr = path_arr.slice(i, i + span);
+                let line = turf.lineString(arr);
+                let length = turf.length(line, {
+                    units: 'kilometers'
+                });
+                length_total += length;
+                console.log(length + '千米');
+
+                // 时间跨度-毫秒
+                let time_span = subset_arr[i + span].receive_time - subset_arr[i].receive_time;
+                // 时间跨度小时
+                time_span = time_span / 1000 / 60 / 60;
+
+                let velocity = length / time_span;
+                let time = new Date(subset_arr[i].receive_time);
+                console.log(velocity + '千米/小时  ' + time.getHours() + ':' + time.getMinutes());
+
+                // 添加一轮循环数据到记录的数组
+                velocity_arr.push(velocity);
+                time_arr.push(time.toString());
+                display_data.push({
+                    name: time.getTime(),
+                    value: [time.getTime(), velocity]
+                });
+            }
+            console.log('一天总路程:' + length_total);
+            app.length_total = length_total.toFixed(3);
+
+            // 载客次数
+            let customer_count = 0;
+            // 载客总时间 - 毫秒
+            let customer_time = 0;
+            // 载客时段
+            let customer_arr = [];
+            // 临时载客变量
+            let hasCustomer = false;
+            let beginCustomer = 0;
+            result.forEach(row => {
+                // 如果没有载客，状态变成载客
+                if (!hasCustomer && row.passenger_status == 1) {
+                    hasCustomer = true;
+                    customer_count++;
+                    beginCustomer = row.receive_time;
+                }
+                // 如果载客，状态变成未载客
+                if (hasCustomer && row.passenger_status == 0) {
+                    hasCustomer = false;
+                    customer_time += row.receive_time - beginCustomer;
+                    customer_arr.push([beginCustomer, row.receive_time]);
+                }
+            });
+            app.customer_count = customer_count;
+            app.customer_time = (customer_time / 1000 / 60).toFixed(2);
+
+
+            // 指定图表的配置项和数据
+            var option = {
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        params = params[0];
+                        var date = new Date(params.name);
+                        return `${date.getHours()}:${date.getMinutes()}  ${params.value[1].toFixed(2)}KM/H`;
+                    },
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                dataZoom: [{
+                        type: 'slider',
+                        xAxisIndex: 0,
+                        start: 10,
+                        end: 60
+                    },
+                    {
+                        type: 'inside',
+                        xAxisIndex: 0,
+                        start: 10,
+                        end: 60
+                    },
+                    {
+                        type: 'slider',
+                        yAxisIndex: 0,
+                        start: 0,
+                        end: 100
+                    },
+                ],
+                legend: {
+                    data: ['速度 KM/H']
+                },
+                xAxis: {
+                    type: 'time',
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    name: '速度 KM/H',
+                    type: 'line',
+                    data: display_data
+                }]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+
+            app.msg = '';
+        }
+        main(0, 0);
+        var myChart = echarts.init(document.getElementById('main'));
+    </script>
+</body>
+
+</html>

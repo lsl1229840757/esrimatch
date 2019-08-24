@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("track")
@@ -29,6 +30,16 @@ public class TrackController {
     @RequestMapping("get_by_id")
     public List<Point> getById(Integer id){
         return trackMapper.getById(id);
+    }
+
+    /**
+     * 每天400条，共30天
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("get_by_date")
+    public List<Map> getByDate(Integer id, Integer day){
+        return trackMapper.getByCount(day * 400 + id);
     }
 
 
