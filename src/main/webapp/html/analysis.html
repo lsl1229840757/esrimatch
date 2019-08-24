@@ -29,7 +29,7 @@
         <input type="number " min="0" max="29" v-model.number='day' placeholder="天数">
         <input type="number" v-model.number='span' placeholder="跨度">
         <button @click='query'>查询</button>
-        <div v-if='msg != ""'>
+        <div v-if="!msg">
             <span>总路程：{{length_total}}KM</span>
             <span>载客次数：{{customer_count}}</span>
             <span>载客时间：{{customer_time}}Min</span>
@@ -53,18 +53,17 @@
             },
             methods: {
                 query: function () {
+                    this.msg = '加载中，请稍等！';
                     if (this.span) {
                         main(this.id, this.day, this.span);
                     } else {
                         main(this.id, this.day);
-
                     }
                 }
             }
         })
 
         async function main(id, day, span = 15) {
-            app.msg = '加载中，请稍等！';
 
             // 获取车数据
             let result = await fetch(`http://localhost:8080/traffic-system/track/get_by_date?id=${id}&day=${day}`);
