@@ -2,8 +2,10 @@ package cn.esri.service.impl;
 
 import cn.esri.service.ConstantService;
 import cn.esri.service.DataService;
-import org.apache.http.HttpConnection;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,31 +22,45 @@ public class DataServiceImpl implements DataService{
 
     /**
      * 目前hadoop上面只有2016-08-01的数据,格式为:
-     * car_id : 每天跑的路程(m)
-     * 请求hadoop的服务器，获得统计数据
      * @param date 要处理的时间
      * @return 返回的统计结果,失败返回空字符串
      */
     @Override
-    public String getMileDataByTime(Date date){
+    public JSONObject getDataByTime(Date date){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        JSONObject jsonObject = new JSONObject();
         try {
-            URL url = new URL("http://47.103.141.116:8080/TrafficHadoop/data?username="+ ConstantService.username
-                    +"&password="+ConstantService.password+"&time="+ sdf.format(date));
+            String urlStr = "http://47.103.141.116:8080/TrafficHadoop/data?username="+ ConstantService.username
+                    +"&password="+ConstantService.password+"&time="+ sdf.format(date)+"&type=distance";
+            // 处理距离文本
+            URL url = new URL(urlStr);
             HttpURLConnection huc = (HttpURLConnection)url.openConnection();
             BufferedReader br = new BufferedReader(new InputStreamReader(huc.getInputStream()));
-            StringBuilder stringBuilder = new StringBuilder();
             String line = null;
-            while((line=br.readLine())!=null){
-                stringBuilder.append(line+"\r\n");
+            while(!StringUtils.isEmpty(line=br.readLine())){
+                JSONArray jsonArray = new JSONArray();
+                String[] split = line.split("\t");
+                jsonArray.add(Double.valueOf(split[1]));
+                jsonObject.put(split[0], jsonArray);
             }
-            return stringBuilder.toString();
+            //处理时间文本
+            URL url1 = new URL(urlStr.replace("distance", "time"));
+            line = null;
+            huc = (HttpURLConnection)url1.openConnection();
+            br = new BufferedReader(new InputStreamReader(huc.getInputStream()));
+            while (!StringUtils.isEmpty((line=br.readLine()))){
+                String[] split = line.split("\t");
+                String[] timeData = split[1].split("\\|");
+                JSONArray jsonArray = jsonObject.getJSONArray(split[0]);
+                jsonArray.add(Long.valueOf(timeData[0]));
+                jsonArray.add(Integer.valueOf(timeData[1]));
+            }
         } catch (MalformedURLException e) {
             throw new RuntimeException();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return "";
+        return jsonObject;
     }
 
 
