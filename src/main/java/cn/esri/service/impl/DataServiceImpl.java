@@ -2,7 +2,6 @@ package cn.esri.service.impl;
 
 import cn.esri.service.ConstantService;
 import cn.esri.service.DataService;
-import org.apache.http.HttpConnection;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
