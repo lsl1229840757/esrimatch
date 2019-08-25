@@ -1,12 +1,13 @@
 package cn.esri.service;
 
+import net.sf.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 @Service
 public interface DataService {
 
-    String getMileDataByTime(Date date);
+    JSONObject getDataByTime(Date date);
 
     boolean processDataByTime(Date date);
 

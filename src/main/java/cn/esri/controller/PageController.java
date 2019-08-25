@@ -13,4 +13,8 @@ public class PageController {
         return new ModelAndView("distinctSearch");
     }
 
+    @RequestMapping("overallStatistics")
+    public ModelAndView overallStatisticsPage(){
+        return new ModelAndView("overallStatistics");
+    }
 }

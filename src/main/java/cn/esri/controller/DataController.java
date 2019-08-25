@@ -1,6 +1,7 @@
 package cn.esri.controller;
 
 import cn.esri.service.DataService;
+import net.sf.json.JSONObject;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
@@ -21,10 +22,10 @@ public class DataController {
     @Resource
     DataService dataService;
 
-    @RequestMapping("ajax_getMileDataByTime")
-    public ModelAndView ajax_getMileDataByTime(Date date,HttpServletResponse response) throws IOException {
-        String mileDataByTime = dataService.getMileDataByTime(date);
-        response.getWriter().println(mileDataByTime);
+    @RequestMapping("ajax_getDataByTime")
+    public ModelAndView ajax_getDataByTime(Date date,HttpServletResponse response) throws IOException {
+        JSONObject result = dataService.getDataByTime(date);
+        response.getWriter().println(result);
         return null;
     }
 
