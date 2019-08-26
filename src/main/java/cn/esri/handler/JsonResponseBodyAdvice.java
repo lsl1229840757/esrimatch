@@ -22,10 +22,10 @@ public class JsonResponseBodyAdvice implements ResponseBodyAdvice {
     public boolean supports(MethodParameter returnType, Class converterType) {
         // 判断返回值是否可以被Jackson赋值
         // 通过判断Converter是否是Jackson转换器来判断
-        log.debug("converterType：" + converterType);
-        log.debug("returnType.getClass()：" + returnType.getClass());
-        log.debug("isAssignableFrom："
-                + MappingJackson2HttpMessageConverter.class.isAssignableFrom(converterType));
+//        log.trace("converterType：" + converterType);
+//        log.trace("returnType.getClass()：" + returnType.getClass());
+//        log.trace("isAssignableFrom："
+//                + MappingJackson2HttpMessageConverter.class.isAssignableFrom(converterType));
         // 返回真，beforeBodyWrite才会被触发
         return MappingJackson2HttpMessageConverter.class.isAssignableFrom(converterType);
     }
@@ -56,7 +56,7 @@ public class JsonResponseBodyAdvice implements ResponseBodyAdvice {
             return body;
         } else {
             // 需要包装
-            log.debug("returnType + body : " + returnType + " ; " + body);
+//            log.trace("returnType + body : " + returnType + " ; " + body);
             Result result = new Result();
             result.setCode(code);
             result.setMsg(msg);

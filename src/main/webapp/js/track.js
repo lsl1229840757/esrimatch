@@ -74,12 +74,12 @@ AMapUI.load(['ui/misc/PathSimplifier', 'lib/$'], function (PathSimplifier, $) {
 
 
 // 请求车辆ID
-request("track/get_car_id")
+request(window.path+"/track/get_car_id")
     .then(result => {
     // 获取到了ID，保存到了result列表中
     console.log(result);
 app.cars = result;
-request("track/get_by_id", {
+request(window.path+"/track/get_by_id", {
     id: result[222]
 })
     .then(result => {
@@ -127,7 +127,7 @@ var app = new Vue({
     methods: {
         getPath: car => {
         app.msg = '获取中~';
-request("track/get_by_id", {
+request(window.path+"/track/get_by_id", {
     id: car
 })
     .then(result => {

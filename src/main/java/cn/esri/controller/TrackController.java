@@ -24,6 +24,13 @@ public class TrackController {
         return trackMapper.getCarId(1000);
     }
 
+    @JsonResult
+    @ResponseBody
+    @RequestMapping("get_car_ids")
+    public List<Integer> getCarIds(String id){
+        return trackMapper.getCarIds(id);
+    }
+
 
     @JsonResult
     @ResponseBody
@@ -38,8 +45,9 @@ public class TrackController {
      */
     @ResponseBody
     @RequestMapping("get_by_date")
-    public List<Map> getByDate(Integer id, Integer day){
-        return trackMapper.getByCount(day * 400 + id);
+    public List<Map> getByDate(Integer id, String day){
+        day = "data_" + day.replaceAll("-","_");
+        return trackMapper.getByCount(day,id);
     }
 
 
