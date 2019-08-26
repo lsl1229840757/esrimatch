@@ -1,0 +1,1 @@
+INSERT into data_2 (select * FROM processed_data WHERE car_id in (SELECT car_id FROM car OFFSET floor(random()*12716) LIMIT 1816));
