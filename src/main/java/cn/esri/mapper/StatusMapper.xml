@@ -6,12 +6,9 @@
 
 
     <select id="searchByDistinct" parameterType="map" resultType="Status">
-        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data
+        select lon,lat from ${formName}
         where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
         ,ST_GeomFromGeoJSON(#{district_geojson}))
-        <!--select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data-->
-        <!--where receive_time = #{start_time} and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')-->
-        <!--,ST_GeomFromGeoJSON(#{district_geojson}))-->
     </select>
     <select id="selectTest" parameterType="DistinctQuery" resultType="Status">
         select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data

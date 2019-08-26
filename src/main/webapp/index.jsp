@@ -3,50 +3,192 @@
 <%@ page trimDirectiveWhitespaces="true"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="itcast" uri="http://itcast.cn/common/"%>
-<%
-	String path = request.getContextPath();
-	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
-			+ path + "/";
-%>
+<%@include file="WEB-INF/jsp/taglibs.jsp"%>
 <!DOCTYPE html>
-<html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        /* 关闭样式过渡 */
+        /* 
+        *{
+            transition: none !important;
+        } 
+        */
+        html {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+        }
+
+        #sidebar {
+            width: 20%;
+
+            background-color: #f5f5f5;
+            border-right: 1px solid #eee;
+
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            display: block;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        #sidePlaceholder {
+            width: 20%;
+            flex-shrink: 0;
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+
+            height: 100%;
+            width: 100%;
+        }
+
+        #topBar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 80%;
+            height: 10%;
+
+            border-bottom: 1px gray solid;
+
+            overflow-y: auto;
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+
+        #topPlaceholder {
+            height: 10%;
+            flex-shrink: 0;
+        }
+
+        iframe {
+            height: 100%;
+            width: 100%;
+        }
+
+        .glyphicon-road {
+            height: 150px;
+            width: 100%;
+            font-size: 80px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+
+        h2 {
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
-    <button>click</button>
+<div id="sidebar">
+    <span class="glyphicon glyphicon-road"></span>
+    <h2>取个名字</h2>
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading downArrow">
+                <span class="glyphicon glyphicon-facetime-video"></span>
+                <span class="panel-title">
+                        <a data-toggle="collapse" data-parent=".panel-group" href="#collapseThree">
+                            可视化模块
+                        </a>
+                    </span>
+            </div>
+            <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree">
+                <a href="#${path}/html/track.html" class="list-group-item">车辆轨迹追踪</a>
+                <a href="#${path}/pages/distinctSearchPage" class="list-group-item">区域热点查询</a>
+            </div>
+        </div>
 
-    <script>
-        let obj = {
-            name: 'piaoyang',
-            age: 15,
-        }
-        
-        let button = document.querySelector('button');
-        button.onclick = function () {
-            /*
-                data中的数据如果不是字符串，会转成url编码字符串。
-                所以如果要传json，需要自己将obj转换为json字符串
-            */
-            $.ajax({
-                type: 'post',
-                url: '<%=basePath%>customer/update',
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'text',
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-adjust"></span>
+                <span class="panel-title">
+                        <a data-toggle="collapse" data-parent=".panel-group" href="#collapseThre">
+                            空间分析
+                        </a>
+                    </span>
+            </div>
+            <div id="collapseThre" class="collapse" role="tabpanel" aria-labelledby="headingThree">
+                <a href="#" class="list-group-item">车流量预测与上车地点推荐(张航merge后自己加上去)</a>
+                <a href="#${path}/pages/overallStatistics" class="list-group-item">总体统计查询</a>
+                <a href="#" class="list-group-item">单车统计查询(罗运merge后自己加上去)</a>
+            </div>
+        </div>
 
-                data: JSON.stringify(obj),
-                success: function (data) {
-                    console.log(data);
-                },
-            })
-        }
-    </script>
+    </div>
+
+
+</div>
+<div id="sidePlaceholder"></div>
+<form id="content">
+
+    <!-- <iframe src="http://piaoyang.xyz:8080/traffic-system/html/track.html" frameborder="0"></iframe> -->
+    <iframe src="http://baidu.com" frameborder="0"></iframe>
+</form>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous">
+</script>
+<script>
+    $(function () {
+        // 关闭JS过渡
+        // $.support.transition = false;
+
+        $('.panel').click(function (event) {
+            $('.panel').removeClass('panel-primary');
+            $(event.currentTarget).addClass('panel-primary');
+        })
+
+        $('#submit').click(function (event) {
+            event.preventDefault();
+            let form = new FormData($('form').get(0));
+            // 同源页面才能进行调用
+            // 否则使用postMessage
+            // https://stackoverflow.com/questions/25098021/securityerror-blocked-a-frame-with-origin-from-accessing-a-cross-origin-frame
+            $('iframe')
+                .get(0)
+                // 得到iframe中的window对象
+                // frames[0]等方法也可 https://www.w3school.com.cn/htmldom/dom_obj_window.asp
+                .contentWindow
+                .parentCall(form.get("date"), form.get("time"), form.get("text"));
+        })
+
+        $('.list-group-item').click(function (event) {
+            let href = event.currentTarget.getAttribute('href').substring(1);
+            console.log(href);
+            $('iframe').get(0).src = href;
+        })
+
+    })
+</script>
 </body>
 
 </html>

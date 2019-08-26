@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,10 @@ public class StatusServiceImpl implements StatusService {
             queryMap.put("start_time", distinctQuery.getStart_time());
             queryMap.put("end_time", distinctQuery.getEnd_time());
             queryMap.put("district_geojson", geometryStr);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy_MM_dd");
+            // 表单名字和日期一致
+            String formName = "data_"+simpleDateFormat.format(distinctQuery.getStart_time());
+            queryMap.put("formName", formName);
             statuses.addAll(session.selectList("cn.esri.mapper.StatusNS.searchByDistinct", queryMap));
         }
         // 坐标转换,把wgs坐标转为GCJ02
