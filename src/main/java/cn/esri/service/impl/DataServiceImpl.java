@@ -73,7 +73,7 @@ public class DataServiceImpl implements DataService{
     public boolean processDataByTime(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         try {
-            URL url = new URL("http://47.103.141.116:8080/process?username="+ ConstantService.username
+            URL url = new URL("http://47.103.141.116:8080/TrafficHadoop/process?username="+ ConstantService.username
                     +"&password="+ConstantService.password+"&time="+ sdf.format(date));
             URLConnection urlConnection = url.openConnection();
             BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));

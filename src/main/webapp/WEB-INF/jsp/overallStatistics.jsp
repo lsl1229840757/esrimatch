@@ -28,7 +28,7 @@
                     timeout: 5000,
                     contentType:"application/x-www-form-urlencoded",
                     dataType:"json",
-                    url: path + "/data/ajax_getMileDataByTime.action",
+                    url: path + "/data/ajax_getDataByTime.action",
                     data:{
                         "date":time
                     },
