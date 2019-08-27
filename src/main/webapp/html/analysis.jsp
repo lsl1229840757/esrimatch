@@ -36,11 +36,11 @@
 <body>
 
     <div id="app">
+		<input type="date" v-model='day' value="2016-08-01">
         <input type="number" v-model.number='id' placeholder="车ID" list="ids" @input='loadCarId'>
         <datalist id="ids">
             <option v-for='i in ids' :value="i">
         </datalist>
-        <input type="date" v-model='day' value="2016-08-01">
         <input type="number" v-model.number='span' placeholder="跨度">
         <button @click='query'>查询</button>
         <div v-if="!msg">
@@ -76,11 +76,11 @@
                 query: function () {
                     this.msg = '加载中，请稍等！';
                     if (this.span) {
-                        main(this.id, this.day, this.span);
+                        main(this.id, this.day, this.span).then(()=>{radarChart(this.id, this.day)});
                     } else {
-                        main(this.id, this.day);
+                        main(this.id, this.day).then(()=>{radarChart(this.id, this.day)});
                     }
-                    radarChart(this.id, this.day)
+                    
                 },
                 loadCarId,
             }
@@ -89,7 +89,7 @@
         async function main(id, day, span = 15) {
             // 获取车数据
             let result = await fetch(
-                `${URL}track/get_by_date?id=${id}&day=${day}`);
+                URL + 'track/get_by_date?id=' +id+'&day='+day);
             result = await result.json()
             console.log(result);
             if (result.length == 0) {
@@ -244,11 +244,14 @@
 
         async function radarChart(id, day) {
             let result = await fetch(
-                `${URL}data/ajax_getDataByTime.action?date=${day}`);
+                URL+'data/ajax_getDataByTime.action?date='+day);
             result = await result.json();
             // 找到行车距离、载客时间、载客次数的最大，最小值
             let max_arr = [0, 0, 0];
             let min_arr = [0, 0, 0];
+			var count_time = 0;
+			var count_length = 0;
+			
             Object.values(result).forEach(row => {
                 if (row[0] > 1000)
                     return;
@@ -270,10 +273,21 @@
                 if (row[2] < min_arr[2]) {
                     min_arr[2] = row[2];
                 }
+				if(row[0] == 0 || row[1] == 0 || row[2] == 0){
+					return;
+				}
+				if((row[2] / row[1]) > count_time){
+					count_time = row[2] / row[1];
+				}
+				if((row[2] / row[0]) > count_length){
+					count_length = row[2] / row[0];
+				}
             });
             max_arr[1] = max_arr[1] / 1000 / 60
             console.log(max_arr);
             console.log(min_arr);
+			console.log(count_time);
+			console.log(count_length);
 
             option = {
                 title: {
@@ -307,11 +321,11 @@
                         },
                         {
                             name: '次数/时间',
-                            max: max_arr[2] / max_arr[1],
+                            max: count_time * 1000,
                         },
                         {
                             name: '次数/里程',
-                            max: max_arr[2] / max_arr[0],
+                            max: count_length,
 
                         },
 
@@ -333,7 +347,7 @@
         }
 
         async function loadCarId() {
-            let result = await fetch(`${URL}track/get_car_ids?id=${app.id}`);
+            let result = await fetch(URL+'track/get_car_ids?id='+app.id + '&date=' +app.day);
             result = await result.json();
             app.ids = result.data;
         }
