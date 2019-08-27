@@ -6,6 +6,7 @@ import cn.esri.utils.Transform;
 import cn.esri.vo.DistinctQuery;
 import cn.esri.vo.Status;
 import com.alibaba.druid.support.spring.stat.annotation.Stat;
+import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.stereotype.Controller;
@@ -44,6 +45,19 @@ public class StatusController {
         JSONArray resultJsonArray = jsonUtils.getJsonArrayFromList(result, new String[]{"azimuth"});
         // 返回前端
         response.getWriter().print(resultJsonArray.toString());
+        return null;
+    }
+
+    /**
+     * 接收前端geoJson,并分析流入流出量
+     * @param distinct 接收前端geoJson
+     * @return 流入流出的json{time:{in:[],out:[]},......}
+     */
+    @RequestMapping("ajax_flowAnalyse")
+    public ModelAndView ajax_flowAnalyse(@RequestBody DistinctQuery distinct,
+                                         HttpServletResponse response) throws IOException {
+        JSONObject result = statusService.flowAnalyse(distinct);
+        response.getWriter().println(result);
         return null;
     }
 

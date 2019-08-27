@@ -276,5 +276,51 @@ public class StatusServiceImpl implements StatusService {
         return boxStatusData;
     }
 
+    @Override
+    public JSONObject flowAnalyse(DistinctQuery distinctQuery) {
+        JSONObject jsonObject = new JSONObject();
+        List<List<Status>> allData = new ArrayList<>();
+        // 查询5个小时的数据
+        int k = 5;
+        //处理时间
+        List<String> timeList = new ArrayList<>();
+        for(int i=0;i<k;i++){
+            DistinctQuery ds = distinctQuery.clone();
+            long temptTime = ds.getStart_time().getTime()+i*1000*3600;
+            Date date = new Date(temptTime);
+            ds.setStart_time(date);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+            timeList.add(simpleDateFormat.format(date));
+            List<Status> statuses = searchByDistinct(ds);
+            allData.add(statuses);
+        }
+        // 开始处理数据
+        for (int i=0;i<k-1;i++){
+            Set<Integer> set = list2Set(allData.get(i));
+            Set<Integer> retain = list2Set(allData.get(i));
+            Set<Integer> set1 = list2Set(allData.get(i+1));
+            //求交集
+            retain.retainAll(set1);
+            //求流出数据
+            set.removeAll(retain);
+            //求流入数据
+            set1.removeAll(retain);
+            JSONObject json = new JSONObject();
+            json.put("in", new ArrayList<>(set1));
+            json.put("out", new ArrayList<>(set));
+            jsonObject.put(timeList.get(i+1), json);
+        }
+        return jsonObject;
+    }
+
+    private Set<Integer> list2Set(List<Status> list){
+        Set<Integer> set = new HashSet<>();
+        for (Status status:list){
+            set.add(status.getCar_id());
+        }
+        return set;
+    }
+
 
 }
+

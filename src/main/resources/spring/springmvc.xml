@@ -27,7 +27,8 @@
     <mvc:resources location="/data/" mapping="/data/**"/>
     <mvc:resources location="/js/" mapping="/js/**"/>
     <mvc:resources location="/fonts/" mapping="/fonts/**"/>
-    <mvc:resources location="/img/" mapping="/img/**"/>
+    <mvc:resources location="/fontAwesome/" mapping="/fontAwesome/**"/>
+    <mvc:resources location="/bootstrap/" mapping="/bootstrap/**"/>
 
     <!-- 加载controller需要的配置信息 -->
     <context:property-placeholder location="classpath:env.properties"/>
@@ -43,4 +44,5 @@
         <!-- 配置逻辑视图的后缀 -->
         <property name="suffix" value=".jsp"/>
     </bean>
+
 </beans>

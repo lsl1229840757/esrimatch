@@ -57,4 +57,12 @@ public class DistinctQuery implements Serializable{
                 ", district_geojson='" + district_geojson + '\'' +
                 '}';
     }
+
+    public DistinctQuery clone(){
+        DistinctQuery distinctQuery = new DistinctQuery();
+        distinctQuery.setStart_time(this.getStart_time());
+        distinctQuery.setDistrict_geojson(this.getDistrict_geojson());
+        distinctQuery.setEnd_time(this.getEnd_time());
+        return distinctQuery;
+    }
 }
