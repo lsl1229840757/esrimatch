@@ -74,5 +74,4 @@
 var path = '${pageContext.request.contextPath }'
 </script>
 <script src="../js/track.js" type="module"></script>
-
 </html>
