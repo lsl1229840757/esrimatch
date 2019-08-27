@@ -40,9 +40,7 @@
         <property name="configLocation" value="classpath:mybatis/sqlMapConfig.xml" />
              <!-- 设置数据源 -->
         <property name="dataSource" ref="dataSource" />
-        <property name="transactionFactory">
-            <bean class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory" />
-        </property>
+
     </bean>
 
     <!-- 配置Mapper扫描 -->
@@ -55,7 +53,6 @@
     <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
         <!-- 以sqlSessionFactory为参数传入构造函数中 -->
         <constructor-arg ref="sqlSessionFactory" />
-        <!-- mybatis执行器，取值范围是SIMPLE/REUSE/BATCH三种类型 -->
         <constructor-arg value="BATCH" />
     </bean>
     <!-- 配置事务管理 -->

@@ -229,6 +229,7 @@
                 series: [{
                     name: '速度 KM/H',
                     type: 'line',
+                    itemStyle: {normal: {areaStyle: {type: 'default'}}},
                     data: display_data
                 }]
             };
@@ -320,11 +321,11 @@
                             min: min_arr[2]
                         },
                         {
-                            name: '次数/时间',
-                            max: count_time * 1000,
+                            name: '每小时载客次数',
+                            max: count_time * 1000 * 60,
                         },
                         {
-                            name: '次数/里程',
+                            name: '每公里载客次数',
                             max: count_length,
 
                         },
@@ -335,12 +336,12 @@
                     type: 'radar',
                     data: [{
                             value: [app.length_total, app.customer_time, app.customer_count,
-                                (app.customer_count / app.customer_time).toFixed(5),
+                                (app.customer_count / app.customer_time * 60).toFixed(5),
                                 (app.customer_count / app.length_total).toFixed(5),
                             ],
                         },
-
-                    ]
+                    ],
+                    itemStyle: {normal: {areaStyle: {type: 'default'}}}
                 }]
             };
             myChart2.setOption(option);

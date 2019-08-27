@@ -69,8 +69,8 @@
                             polygons.push(polygon);
                         }
                     }
-                    map.add(polygons);
-                    map.setFitView(polygons);//视口自适应
+                    // map.add(polygons);
+                    // map.setFitView(polygons);//视口自适应
                     //将overlays转换为geojson
                     var geojson = new AMap.GeoJSON({
                         geoJSON: null,
