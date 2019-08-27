@@ -16,6 +16,10 @@
 <script>
     $(function(){
 
+        /**
+         * 预测查询的计算vo类
+         *
+         */
         function CalcuVo(userLocation,driverLocation) {
 
             this.userW = 6;
@@ -103,16 +107,9 @@
         var userPoint = null;
         var driverPoint = null;
         var centerPointArray = [];
-        var nineBoxBoundArray = [];
-        var nineBoxes = [];
-        /*var predictParam = {"geometry_geojson": '[{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.30172299999998,39.901974],[116.31172299999997,39.901974],[116.31172299999997,39.891974],[116.30172299999998,39.891974],[116.30172299999998,39.901974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.31172300000003,39.901974],[116.32172300000002,39.901974],[116.32172300000002,39.891974],[116.31172300000003,39.891974],[116.31172300000003,39.901974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.32172300000002,39.901974],[116.33172300000001,39.901974],[116.33172300000001,39.891974],[116.32172300000002,39.891974],[116.32172300000002,39.901974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.30172299999998,39.911974],[116.31172299999997,39.911974],[116.31172299999997,39.901973999999996],[116.30172299999998,39.901973999999996],[116.30172299999998,39.911974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.31172300000003,39.911974],[116.32172300000002,39.911974],[116.32172300000002,39.901973999999996],[116.31172300000003,39.901973999999996],[116.31172300000003,39.911974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.32172300000002,39.911974],[116.33172300000001,39.911974],[116.33172300000001,39.901973999999996],[116.32172300000002,39.901973999999996],[116.32172300000002,39.911974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.30172299999998,39.921974],[116.31172299999997,39.921974],[116.31172299999997,39.911973999999994],[116.30172299999998,39.911973999999994],[116.30172299999998,39.921974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.31172300000003,39.921974],[116.32172300000002,39.921974],[116.32172300000002,39.911973999999994],[116.31172300000003,39.911973999999994],[116.31172300000003,39.921974]]]}},{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[116.32172300000002,39.921974],[116.33172300000001,39.921974],[116.33172300000001,39.911973999999994],[116.32172300000002,39.911973999999994],[116.32172300000002,39.921974]]]}}]',
-            "interval": 3600000,
-            "intervalNum": 5,
-            "now_time": "2016-08-01T18:00",
-            "oldest_time": "2016-08-01T13:00:00"};*/
+        var boxBoundArray = [];
+        var boxes = [];
         var predictParam = null;
-        //var statusCountData = [[1953, 381, 1171, 2045, 808, 881, 3146, 3349, 2051],[1657, 223, 1043, 1856, 589, 1264, 2994, 2576, 1759],[2622, 637, 1731, 2578, 784, 1083, 2293, 2346, 2046],[2622, 637, 1731, 2578, 784, 1083, 2293, 2346, 2046],
-        //    [2622, 637, 1731, 2578, 784, 1083, 2293, 2346, 2046],[2622, 637, 1731, 2578, 784, 1083, 2293, 2346, 2046],[2622, 637, 1731, 2578, 784, 1083, 2293, 2346, 2046],[2622, 637, 1731, 2578, 784, 1083, 2293, 2346, 2046]];
         var statusCountData = [];
         var calcuVo = null;
         var pickUpSpot = null;
@@ -120,6 +117,7 @@
         var callbackNum = 0;
         var resultRoadUnit = null;
         var currentBoxData = [];
+        var currentBoxIndex = 0;
 
         var map = new AMap.Map("container", {
             resizeEnable: true,
@@ -127,11 +125,13 @@
             zoom: 11
         });
 
+        //map的点击事件
         map.on('click', function (e) {
             // 触发事件的地理坐标，AMap.LngLat 类型
             var lnglat = e.lnglat;
             var selectedButtonName = getSelectedButtonId("#locationChoice");
             var saveDivName = null;
+            //获取用户地址
             if(selectedButtonName === "chooseUserLocation"){
                 $("#userLocation").val(lnglat);
                 saveDivName = "#userAddress";
@@ -148,6 +148,7 @@
                 });
                 map.add(userPoint);
             }else if(selectedButtonName === "chooseDriverLocation"){
+                //获取司机地址
                 $("#driverLocation").val(lnglat);
                 saveDivName = "#driverAddress";
                 if(driverPoint){
@@ -183,6 +184,7 @@
 
         //bind
         //clickEvent - #createBoxes
+        //生成预测区
         $("#createBoxes").click(function () {
             if(userPoint){
                 if(validateInput("#sideLength")){
@@ -190,11 +192,11 @@
                     if(pattern === "nineBoxes"){
                         var centerPoint = userPoint.getPosition();
                         var sideLength = parseFloat($("#sideLength").val()) ;
-                        centerPointArray = getNineBoxCenterArray(centerPoint,sideLength,2);
-                        nineBoxBoundArray = getNineBoxBoundArray(centerPointArray,sideLength);
-                        map.remove(nineBoxes);
-                        nineBoxes = [];
-                        nineBoxBoundArray.forEach(function (bound) {
+                        centerPointArray = getBoxCenterArray(centerPoint,sideLength,2);
+                        boxBoundArray = getBoxBoundArray(centerPointArray,sideLength);
+                        map.remove(boxes);
+                        boxes = [];
+                        boxBoundArray.forEach(function (bound) {
                             var rectangle = new AMap.Rectangle({
                                 bounds: bound,
                                 strokeColor:'red',
@@ -208,16 +210,21 @@
                                 cursor:'pointer',
                                 zIndex:50,
                             })
-                            nineBoxes.push(rectangle);
+                            boxes.push(rectangle);
                         })
-                        map.add(nineBoxes);
-                        var geojsonData = toGeoJsonStr(nineBoxes);
+                        map.add(boxes);
+                        var geojsonData = toGeoJsonStr(boxes);
                         $("#geometry_geojson").val(geojsonData);
 
                     }else if(pattern === "roadAlong"){
+                        if(validateInput("#sideLength")){
 
+                        }
                     }else if(pattern === "manual"){
-                        validateInput("#predictForm")
+                        //手动选取
+                        if(validateInput("#sideLength")){
+                            //生成取值范围
+                        }
                     }
                 }
             }else{
@@ -227,28 +234,42 @@
 
         //bind
         //clickEvent - #clearBoxes
+        //清空预测区
         $("#clearBoxes").click(function (e) {
-            map.remove(nineBoxes);
-            nineBoxes = [];
+            map.remove(boxes);
+            boxes = [];
+            statusCountData = [];
             $("#geometry_geojson").val("");
         });
 
-        //Tool
-        function getNineBoxBoundArray(nineBoxCenterArray,sideLength){
-            var nineBoxBoundArray = [];
-            nineBoxCenterArray.forEach(function (center) {
+        /**
+         *  获取预测区的bound
+         * @param boxCenterArray 预测区中心点数组
+         * @param sideLength 预测区的边长
+         * @returns {Array} 预测区bounds
+         */
+        function getBoxBoundArray(boxCenterArray,sideLength){
+            var boxBoundArray = [];
+            boxCenterArray.forEach(function (center) {
                 var lng = center[0];
                 var lat = center[1];
                 var halfS = sideLength / 2;
                 var southWest = new AMap.LngLat(lng - halfS, lat + halfS);
                 var northEast = new AMap.LngLat(lng + halfS, lat - halfS);
-                nineBoxBoundArray.push(new AMap.Bounds(southWest,northEast));
+                boxBoundArray.push(new AMap.Bounds(southWest,northEast));
             })
-            return nineBoxBoundArray;
+            return boxBoundArray;
         }
 
         //Tool
-        function getNineBoxCenterArray(centerPoint,sideLength,sideNum){
+        /**
+         *  获取预测区的中心点坐标数组
+         * @param centerPoint 用户所在位置
+         * @param sideLength 预测区的边长
+         * @param sideNum 总预测区一边的预测区个数，总预测区个数 = sideNum * sidNum
+         * @returns {Array} 中心点坐标数组
+         */
+        function getBoxCenterArray(centerPoint,sideLength,sideNum){
             var centerPointArray = [];
             var lng = centerPoint.getLng();
             var lat = centerPoint.getLat();
@@ -274,15 +295,18 @@
 
         //bind
         //clickEvent - #predict
+        //绑定 -开始预测按钮点击事件，取得预测数据
         $("#predict").click(function (e) {
             var parttern = $('input[name="createBoxesMethodRadio"]:checked').val();
             if(parttern === "currentTime"){
 
             }else if(parttern === "oldTime"){
+                //预测模式
                 if(validateForm("#predictForm")){
-                    var predictParam = getPredictParam();
+                    predictParam = getPredictParam();
                     console.log(predictParam);
                     if($("#geometry_geojson").val()!=""){
+                        $("#awaitHint").text("数据获取中,请稍后");
                         $.ajax({
                             method: "POST",
                             timeout: 500000,
@@ -296,6 +320,7 @@
                                     statusCountData.push(value);
                                 })
                                 refreshTimeLine();
+                                $("#awaitHint").text("");
                             },
                             error: function (errorMessage) {
                                 alert("XML request Error");
@@ -309,7 +334,7 @@
             }
         });
 
-
+        //获取取得预测数据的ajax请求参数，返回json格式
         function getPredictParam(){
             var jsonData = form2JsonObject("#predictForm");
             var intervalSS = mapTime(jsonData["unitRadio"],parseFloat(jsonData["interval"]));
@@ -326,6 +351,7 @@
 
         //bind
         //clickEvent - #predictPickUpSpot
+        //预测推荐地点
         $("#predictPickUpSpot").click(function (e) {
             if(statusCountData.length){
                 var index = predictParam["intervalNum"] + parseInt($("#predictCertainTime").val());
@@ -342,7 +368,7 @@
                             // result为对应的地理位置详细信息
                             for(var i = 0 ; i < 3 ; i++){
                                 var road = result.regeocode.roads[i];
-                                //查询最近的道路名称
+                                //查询最近的道路名称，范围为1000m之内
                                 if (road.distance < 1000) {
                                     var roadUnit = new RoadUnit();
                                     calcuVo.addRoadUnit(roadUnit);
@@ -357,6 +383,7 @@
                                 },
                                 "roads": calcuVo.getNames()
                             };
+                            $("#awaitHint").val("推荐地点计算中,请稍后");
                             $.ajax({
                                 method: "POST",
                                 timeout: 500000,
@@ -371,12 +398,14 @@
                                         var roadName = calcuVo.getNameN(i);
                                         var roadUnit = calcuVo.getN(i);
                                         if(result[roadName].success){
+                                            //为calcuVo填充数据
                                             var roadName = roadUnit.roadName;
                                             roadUnit.userDistance = result[roadName].minDistance;
                                             roadUnit.userNearestPoint = result[roadName].nearestPoint.coordinates;
                                             roadUnit.roadGeo = result[roadName].roadGeometry;
                                             roadUnit.success = result[roadName].success;
                                             console.log(roadName + '查询成功');
+                                            //计算异步调用flag
                                             callbackFlag += 2;
                                         }else{
                                             roadUnit.success = result[roadName].success;
@@ -385,9 +414,11 @@
                                     }
                                     console.log(calcuVo);
                                     calculate(callback);
+                                    $("#awaitHint").val("");
                                 },
                                 error: function (errorMessage) {
                                     alert("XML request Error");
+                                    $("#awaitHint").val("");
                                 }
                             })
                         }
@@ -398,6 +429,7 @@
             }
         });
 
+        //等待高德api返回结果后调用，计算权重，添加推荐地点marker
         function callback(){
             //计算权重
             calcuVo.calcuWeights();
@@ -415,6 +447,7 @@
             map.add(pickUpSpot);
         }
 
+        //计算最佳上车推荐地点
         function calculate(callback){
             //司机路线规划
             for(var i = 0; i < calcuVo.size(); i++){
@@ -472,6 +505,7 @@
         }
 
         //Tool
+        // 获取array中的最大值
         function getMaxRectIndex(array){
             var maxIndex = 0;
             var maxData = -1;
@@ -493,6 +527,7 @@
         }
 
         //Tool
+        //映射时间毫秒数
         function mapTime(unitName,timeNum){
             var timeMap = {
                 "hour":1*60*60*1000,
@@ -502,7 +537,7 @@
             return  timeMap[unitName] * timeNum;
         }
 
-
+        //更新时间轴渲染
         function refreshTimeLine(){
             var predictParam = getPredictParam();
             var old_date = new Date(predictParam["oldest_time"]);
@@ -515,17 +550,23 @@
                 var dateShowText = moment(date).format("YYYY-MM-DD HH:mm");
                 $("#events").find("ol").append('<li><a href=\"#0\" indexTag=\"'+ i + ' \" data-date=\"'+ data2dateStr +'\">' + dateShowText + '</a></li>');
             }
+            //为li绑定refreshBoxData
             if(statusCountData.length){
                 $("#events").find("a").each((function () {
                     var i = parseInt($(this).attr("indexTag"));
                     $(this).click(function () {
+                        currentBoxIndex = i;
                         refreshBoxData(i);
                     })
                 }))
             }
+            //指定最小间隔为120px，起始偏移为60px
             initTimeLineO(120,60);
+            //时间轴更新后，重新渲染当前预测区
+            refreshBoxData(currentBoxIndex);
         }
 
+        //为预测区更新指定index（时间）的数据，映射为指定色彩
         function refreshBoxData(n){
             currentBoxData = statusCountData[n];
             if(currentBoxData){
@@ -533,14 +574,16 @@
                 var min = Math.min.apply(null,currentBoxData);
                 for(var i = 0; i < currentBoxData.length; i++){
                     var data = currentBoxData[i];
+                    //获取映射color
                     var color = mapColor(data,max,min);
-                    nineBoxes[i].setOptions({
+                    boxes[i].setOptions({
                         fillColor:color
                     })
                 }
              }
         }
 
+        //预测区网格颜色映射，默认为线性映射
         function mapColor(data,max,min){
             var colorMap = {
                 "0":"#f44336",
@@ -604,9 +647,10 @@
             })
         });
 
+        //将overlays转换为geojson
         function toGeoJsonStr(overlayerArray){
-            //将overlays转换为geojson
             var geojson = new AMap.GeoJSON({
+                //设置为null
                 geoJSON: null,
                 // 还可以自定义getMarker和getPolyline
                 getPolygon: function (geojson, lnglats) {
@@ -620,12 +664,14 @@
                     });
                 }
             });
+            //添加overlayers
             geojson.addOverlays(overlayerArray);
             // 给隐藏域添加数据
             return JSON.stringify(geojson.toGeoJSON());
         }
 
         //Tool
+        //获取被选择button的Id
         function getSelectedButtonId(buttonsDivName) {
             var result = null;
             $(buttonsDivName).find("button").each(function (e) {
@@ -638,6 +684,7 @@
         }
 
         //Tool
+        //为clearBtnId指定的标签绑定clear事件，清空指定数组中的标签
         function bindClearInputBtnEvent(clearBtnId,clearInputIdArray,extendFunction){
             $(clearBtnId).click(function () {
                 clearInputIdArray.forEach(function (clearInputId) {
@@ -655,11 +702,12 @@
         function bindSingleChoiceBtnsEvent(buttonsDivId,ignoreIdArray,extendFunction) {
             //设置默认值
             ignoreIdArray=ignoreIdArray||[];
-
+            //忽略ignoreArray数组中的按钮
             $(buttonsDivId).find("button").each(function () {
                 if(ignoreIdArray.length === 0 || $.inArray($(this).attr("id"),ignoreIdArray) < 0){
                     $(this).click(function (e){
                         if($(this).attr("isSelected") == "false"){
+                            //当点击其他未被选取的按钮时，清除其他按钮的选取状态
                             $(this).parent().find("[isSelected]").each(function () {
                                 var selectdFlag = $(this).attr("isSelected");
                                 if(selectdFlag == "true"){
@@ -667,9 +715,11 @@
                                     $(this).attr("isSelected","false")
                                 }
                             })
+                            //设置被选取样式
                             $(this).attr("class","btn btn-selected");
                             $(this).attr("isSelected","true")
                         }else{
+                            //设置未被选取样式
                             $(this).attr("class","btn");
                             $(this).attr("isSelected","false")
                         }
@@ -683,6 +733,7 @@
         }
 
         //Tool
+        //在输入时检查输入结果的格式
         function bindKeyUpCheckEvent(inputId){
             $(inputId).keyup(function (e) {
                 validateInput(inputId);
@@ -690,6 +741,7 @@
         }
 
         //Tool
+        // 在jquery指明的输入框失去焦点时，更新时间轴
         function bindBlurRefreshTimeLineEvent(jqueryId){
             $(jqueryId).blur(function (e) {
                 refreshTimeLine();
@@ -697,6 +749,7 @@
         }
 
         //Tool
+        //在jqueryid指定的输入框输入换行符（keycode == ）时，更新时间轴，并清除聚焦
         function bindEnterRefreshTimeLineEvent(jqueryId){
             $(jqueryId).keyup(function (e) {
                 if(e.keyCode ==13){
@@ -708,20 +761,26 @@
 
 
         //bind
+        //为clear按钮绑定清除事件
         function bindClearInputBtn(){
             bindClearInputBtnEvent("#clearLocation",["#userLocation","#userAddress", "#driverLocation","#driverAddress"],function () {
+                //清空用户司机地点的同时清空marker
                 map.remove(userPoint);
                 map.remove(driverPoint);
+                userPoint = null;
+                driverPoint = null;
             });
         }
 
         //bind
+        //绑定单选按钮事件
         function bindSingleChoiceBtns(){
             bindSingleChoiceBtnsEvent("#locationChoice",["clearLocation"]);
         }
 
         //bind
-        function bindKeyDownCheck() {
+        // 为输入框绑定bindKeyUpCheckEvent
+        function bindKeyUpCheck() {
             bindKeyUpCheckEvent("#sideLength");
             bindKeyUpCheckEvent("#interval");
             bindKeyUpCheckEvent("#intervalNum");
@@ -729,6 +788,8 @@
             bindKeyUpCheckEvent("#intervalNum");
         }
 
+        //bind
+        //为输入框绑定bindBlurRefreshTimeLineEvent
         function bindBlurRefreshTimeLine(){
             bindBlurRefreshTimeLineEvent("#interval");
             bindBlurRefreshTimeLineEvent("#intervalNum");
@@ -736,6 +797,8 @@
             bindBlurRefreshTimeLineEvent("#intervalNum");
         }
 
+        //bind
+        //绑定刷新时间轴事件
         function bindEnterRefreshTimeLine(){
 
             bindEnterRefreshTimeLineEvent("#interval");
@@ -744,28 +807,39 @@
             bindEnterRefreshTimeLineEvent("#intervalNum");
         }
 
+        function refreshUnitHint(){
+            $('input[name="unitRadio"]').click(function (e) {
+                var unitNmae = $(this).val();
+                $("#unitHint").text("单位：" + unitNmae);
+            })
+        }
+
         function initStartDate(){
             $("#now_time").attr("value", "2016-08-01T18:00");
         }
 
+        //初始化时间差interval的单位
         function initUnitHint(){
             var unitNmae = $('input[name="unitRadio"]:checked').val();
             $("#unitHint").text("单位：" + unitNmae);
         }
 
         //init
+        //初始化执行函数
         function init() {
             bindClearInputBtn();
             bindSingleChoiceBtns();
-            bindKeyDownCheck();
+            bindKeyUpCheck();
             bindBlurRefreshTimeLine();
             bindEnterRefreshTimeLine();
             initStartDate();
             initUnitHint();
+            refreshUnitHint();
             refreshTimeLine();
         }
 
         //callInit
+        //调用Init函数
         init();
     });
 </script>
@@ -1010,6 +1084,8 @@
         <button class="btn" id="predict">开始预测</button>
         <span>&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="predictPickUpSpot">预测乘车地点</button>
+        <span>&nbsp;&nbsp;&nbsp;</span>
+        <div id="awaitHint"></div>
 
         <div class="input-item">
             <span class="input-item-text">预测时间段数</span>
