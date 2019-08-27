@@ -10,7 +10,10 @@
 	//定义js可以访问的全局变量
 	var path = "${path}";
 </script>
-<script type="text/javascript" src="${path }/js/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="${path }/js/jquery-3.3.1.js"></script>
+    <link rel="stylesheet" href="${path }/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${path }/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${path }/css/buttons.css">
 <%--<script type="text/javascript" src="${path }/js/jquery.form.js"></script>--%>
 </head>
 <body>

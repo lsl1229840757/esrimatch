@@ -1,47 +1,56 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%@include file="taglibs.jsp"%>
+<%@include file="taglibs.jsp" %>
 <html>
 <head>
     <title>总体统计</title>
     <style>
-        .allDataBar{
-            width: 700px;
-            height:400px;
-        }
-        .allDataPie{
-            width: 700px;
-            height:400px;
+        .allDataBar {
+            width: 100%;
+            height: 400px;
+
         }
 
+        .allDataPie {
+            width: 100%;
+            height: 400px;
+        }
+
+        .my-form {
+            background-color: transparent;
+            border-radius: 0;
+            border: 1px solid;
+            margin-top:22px;
+        }
 
     </style>
     <script src="${path}/js/echarts.min.js"></script>
     <script>
 
-        $(function(){
+        $(function () {
             //注册鼠标点击事件
             $("#sub").click(function () {
                 var time = $("#date").val();
+
                 console.log(time);
                 $.ajax({
                     method: "POST",
                     timeout: 5000,
-                    contentType:"application/x-www-form-urlencoded",
-                    dataType:"json",
+                    contentType: "application/x-www-form-urlencoded",
+                    dataType: "json",
                     url: path + "/data/ajax_getDataByTime.action",
-                    data:{
-                        "date":time
+                    data: {
+                        "date": time
                     },
                     async: true,
                     success: function (result) {
                         //预处理数据
-                        for(var key in result){
+                        for (var key in result) {
                             //处理距离
                             result[key][0] = parseFloat(result[key][0].toFixed(2));
                             //处理时间转为小时
-                            result[key][1] = parseFloat((result[key][1]/1000/3600).toFixed(2));
+                            result[key][1] = parseFloat((result[key][1] / 1000 / 3600).toFixed(2));
                             // 过滤数据
-                            if(result[key][0] > 1000){
+                            if (result[key][0] > 1000) {
                                 delete result[key];
                             }
                         }
@@ -59,6 +68,8 @@
                         alert("XML request Error");
                     }
                 });
+                $(".allDataBar").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
+                $(".allDataPie").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
             });
         });
     </script>
@@ -67,47 +78,47 @@
     <script>
 
 
-
-        function initSingleDataPie(result, k, time, type){
+        function initSingleDataPie(result, k, time, type) {
             // 基于准备好的dom，初始化echarts实例
             var colum = 0;//默认距离
-            var title = ["距离","(KM)"];
+            var title = ["距离", "(KM)"];
             var divId = "maxDistance";
-            switch (type){
+            switch (type) {
                 case "distance":
                     colum = 0;
-                    title = ["行驶距离","(公里)"];
+                    title = ["行驶距离", "(公里)"];
                     divId = "maxDistance";
                     break;
                 case "time":
                     colum = 1;
-                    title = ["接客时长","(小时)"];
+                    title = ["接客时长", "(小时)"];
                     divId = "maxTime";
 
                     break;
                 case "num":
                     colum = 2;
-                    title = ["接客次数","(次)"];
+                    title = ["接客次数", "(次)"];
                     divId = "maxNum";
                     break;
             }
             var myChart = echarts.init(document.getElementById(divId));
             var maxKeyList = getMaxKeyList(result, k, type);
-          var data = {
-              legendData:[],
-              selected:[],
-              seriesData:[]
-          };
-          for(var key in maxKeyList){
-            data.legendData.push(maxKeyList[key]);
-            data.selected.push(true);
-            data.seriesData.push(
-                {
-                    name:maxKeyList[key],
-                    value:result[maxKeyList[key]][colum]
-                });
-          }
-          var option = {
+            var data = {
+                legendData:[],
+                selected:[],
+                seriesData:[]
+            };
+
+            for(var key in maxKeyList){
+                data.legendData.push(maxKeyList[key]);
+                data.selected.push(true);
+                data.seriesData.push(
+                    {
+                        name:maxKeyList[key],
+                        value:result[maxKeyList[key]][colum]
+                    });
+            }
+            var option = {
                 title : {
                     text: title[0]+'最大'+"的前"+k+"辆车"+title[1],
                     x:'center'
@@ -125,11 +136,21 @@
                     data: data.legendData,
                     selected: data.selected
                 },
+                labelLine: {
+                    normal: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.3)'
+                        },
+                        smooth: 0.2,
+                        length: 10,
+                        length2: 20
+                    }
+                },
                 series : [
                     {
                         name: '详细信息',
                         type: 'pie',
-                        radius : '55%',
+                        radius: ['50%', '70%'],
                         center: ['40%', '50%'],
                         data: data.seriesData,
                         itemStyle: {
@@ -141,30 +162,30 @@
                         }
                     }
                 ]
-             };
+            };
             myChart.setOption(option);
         }
 
         //初始化总体统计的距离、时间、接客次数图标,type=distance or time or num
-        function initSingleDataBar(result, time, type){
+        function initSingleDataBar(result, time, type) {
             var colum = 0;//默认距离
-            var title = ["行驶距离","(公里)"];
+            var title = ["行驶距离", "(公里)"];
             var divId = "allDistance";
-            switch (type){
+            switch (type) {
                 case "distance":
                     colum = 0;
-                    title = ["行驶距离","(公里)"];
+                    title = ["行驶距离", "(公里)"];
                     divId = "allDistance";
                     break;
                 case "time":
                     colum = 1;
-                    title = ["接客时长","(小时)"];
+                    title = ["接客时长", "(小时)"];
                     divId = "allTime";
 
                     break;
                 case "num":
                     colum = 2;
-                    title = ["接客次数","(次)"];
+                    title = ["接客次数", "(次)"];
                     divId = "allNum";
                     break;
             }
@@ -174,15 +195,16 @@
             // 预处理数据
             var idData = [];
             var singleData = [];
-            for(var key in result){
+            for (var key in result) {
                 // 过滤数据
                 idData.push(key);
                 singleData.push(result[key][colum]);
             }
+
             var option = {
                 title: {
-                    text: time+'所有车辆'+title[0]+'统计'+title[1],
-                    left: 10
+                    text: time + '所有车辆' + title[0] + '统计' + title[1],
+                    x:'center'
                 },
                 toolbox: {
                     feature: {
@@ -194,6 +216,7 @@
                         }
                     }
                 },
+
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
@@ -228,16 +251,17 @@
                     data: singleData,
                     // Set `large` for large data amount
                     large: true
-                }]
+                }],
+
             };
             // 使用刚指定的配置项和数据显示图表。
             myChart.setOption(option);
         }
 
         // 求最大k个json的key
-        function getMaxKeyList(result,k,type){
+        function getMaxKeyList(result, k, type) {
             var colum = 0;//默认距离
-            switch (type){
+            switch (type) {
                 case "distance":
                     colum = 0;
                     break;
@@ -249,12 +273,12 @@
                     break;
             }
             var keyList = [];
-            for (var i=0;i<k;i++){
+            for (var i = 0; i < k; i++) {
                 var maxKey = "";
                 var maxSingleData = -Infinity;
-                for(var key in result){
+                for (var key in result) {
                     var singleData = result[key][colum];
-                    if((keyList.indexOf(key) === -1) && (singleData > maxSingleData)){
+                    if ((keyList.indexOf(key) === -1) && (singleData > maxSingleData)) {
                         maxSingleData = singleData;
                         maxKey = key;
                     }
@@ -267,13 +291,45 @@
 
 </head>
 <body>
-    <input type="date" name="date" id="date" value="2016-08-01">
-    <input type="button" name="sub" id="sub" value="查询">
-    <div id="allDistance" class="allDataBar"></div>
-    <div id="allTime" class="allDataBar"></div>
-    <div id="allNum" class="allDataBar"></div>
-    <div id="maxDistance" class="allDataPie"></div>
-    <div id="maxTime" class="allDataPie"></div>
-    <div id="maxNum" class="allDataPie"></div>
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-md-3 col-sm-3">
+            <input type="date" name="date" id="date" value="2016-08-01" class="form-control input-lg my-form">
+        </div>
+        <div class="col-md-2 col-sm-2">
+            <button type="reset" name="sub" id="sub"
+                    class="button button--pipaluk button--inverted button--text-thick btn-reset"
+                    style="margin-left: 10%;padding-bottom: 20px;">
+                查询
+            </button>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 50px;">
+        <div class="col-md-7 col-sm-7">
+            <div id="allDistance" class="allDataBar"></div>
+        </div>
+        <div class="col-md-5 col-sm-5">
+            <div id="maxDistance" class="allDataPie"></div>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 50px;">
+        <div class="col-md-5 col-sm-5">
+            <div id="maxTime" class="allDataPie"></div>
+        </div>
+        <div class="col-md-7 col-sm-7">
+            <div id="allTime" class="allDataBar"></div>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 50px;">
+        <div class="col-md-7 col-sm-7">
+            <div id="allNum" class="allDataBar"></div>
+        </div>
+        <div class="col-md-5 col-sm-5">
+            <div id="maxNum" class="allDataPie"></div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
