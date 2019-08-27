@@ -38,7 +38,6 @@ public class StatusServiceImpl implements StatusService {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     SimpleDateFormat sdf_to_day_db = new SimpleDateFormat("yyyy_MM_dd");
 
-    // TODO 这里的查询暂时没有开事务管理
     @Override
     public List<Status> searchByDistinct(DistinctQuery distinctQuery) {
         JSONArray distinctJsonArray = JSONArray.fromObject(distinctQuery.getDistrict_geojson());

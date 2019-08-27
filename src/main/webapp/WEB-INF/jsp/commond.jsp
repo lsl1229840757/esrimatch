@@ -100,6 +100,28 @@
             }
         }
 
+        var operateEnum = ["getPoint","getBound"];
+
+        var operateFunction_mapping = {
+            "getPoint" : {
+                "click": mapClickGetPoint
+            },
+            "getBound" : {
+                "click": mapClickGetBound,
+                "mousemove": mapMousemoveGetBound,
+                "rightclick": mapRightclickGetBound
+            }
+        }
+
+        var radio_function_mapping={
+            "#nineBoxes":"getPoint",
+            "#roadAlong":"getPoint",
+            "#manual":"getBound"
+        }
+
+        var operateStatus = "getPoint";
+        var mousemoveBound = null;
+
         var geocoder = null;
         var roadSearcher = null;
         var driving = null;
@@ -125,45 +147,109 @@
             zoom: 11
         });
 
-        //map的点击事件
-        map.on('click', function (e) {
+        //默认为getPoint方法
+        setOpertateStatus("getPoint");
+
+        //tool
+        /**
+         * 基于map为radio绑定指定事件
+         * @param mapping 指定map，key为radioId，value为operateName
+         */
+       function bindRadioFunction(mapping){
+           jQuery.each(mapping,function (radioId,funName) {
+               $(radioId).click(function () {
+                   setOpertateStatus(funName);
+               })
+           })
+       }
+
+        function setOpertateStatus(operateName){
+            //清除所有地图事件
+            jQuery.each(operateFunction_mapping,function (operateStatusName,eventObject) {
+                if(operateStatusName === operateStatus){
+                    jQuery.each(eventObject,function (event,handler) {
+                        map.off(event,handler);
+                    })
+                }
+            });
+            //清除事件相关的修改项
+            if(operateName === "getPoint"){
+
+            }else if(operateName === "getBound"){
+                if(mousemoveBound){
+                    map.remove(mousemoveBound);
+                }
+            }
+            //添加指定地图事件
+            jQuery.each(operateFunction_mapping[operateName],function (event,handler) {
+                map.on(event,handler);
+            });
+            //添加事件相关的修改项
+            if(operateName === "getPoint"){
+
+            }else if(operateName === "getBound"){
+                mousemoveBound = new AMap.Rectangle({
+                    bounds: getBoxBoundArray([[0,0]],0)[0],
+                    strokeColor:'red',
+                    strokeWeight: 6,
+                    strokeOpacity:0.5,
+                    strokeDasharray: [30,10],
+                    // strokeStyle还支持 solid
+                    strokeStyle: 'dashed',
+                    fillColor:'blue',
+                    fillOpacity:0.5,
+                    cursor:'pointer',
+                    zIndex:50,
+                    map:map
+                });
+                mousemoveBound.on("click",mapClickGetBound);
+                mousemoveBound.on("rightclick",mapRightclickGetBound);
+            }
+
+            operateStatus = operateName;
+            console.log('已绑定' + operateName);
+        }
+
+
+
+        function mapClickGetPoint(mapEvent) {
             // 触发事件的地理坐标，AMap.LngLat 类型
-            var lnglat = e.lnglat;
+            var lnglat = mapEvent.lnglat;
             var selectedButtonName = getSelectedButtonId("#locationChoice");
             var saveDivName = null;
             //获取用户地址
-            if(selectedButtonName === "chooseUserLocation"){
+            if (selectedButtonName === "chooseUserLocation") {
                 $("#userLocation").val(lnglat);
                 saveDivName = "#userAddress";
-                if(userPoint){
+                if (userPoint) {
                     map.remove(userPoint);
                     userPoint = null;
                 }
-                userPoint =  new AMap.Marker({
+                userPoint = new AMap.Marker({
                     position: lnglat,
                     title: '北京',
-                    label:"乘客",
-                    draggable:true,
-                    animation:"AMAP_ANIMATION_DROP"
+                    label: "乘客",
+                    draggable: true,
+                    animation: "AMAP_ANIMATION_DROP"
                 });
                 map.add(userPoint);
-            }else if(selectedButtonName === "chooseDriverLocation"){
+            } else if (selectedButtonName === "chooseDriverLocation") {
                 //获取司机地址
                 $("#driverLocation").val(lnglat);
                 saveDivName = "#driverAddress";
-                if(driverPoint){
+                if (driverPoint) {
                     map.remove(driverPoint);
                     driverPoint = null;
                 }
-                driverPoint =  new AMap.Marker({
+                driverPoint = new AMap.Marker({
                     position: lnglat,
                     title: '北京',
-                    label:"司机",
-                    draggable:true,
-                    animation:"AMAP_ANIMATION_DROP"
+                    label: "司机",
+                    draggable: true,
+                    animation: "AMAP_ANIMATION_DROP"
                 });
                 map.add(driverPoint);
-            }else{
+            } else {
                 alert("先确定坐标所属");
             }
             //反地理编码查询道路
@@ -180,12 +266,53 @@
                     }
                 })
             }
-        });
+        }
+
+        //点击获取一个预测区
+        function mapClickGetBound(mapEvent){
+           if($("#createBoxes_manual").attr("isSelected")=="true"){
+               // 触发事件的地理坐标，AMap.LngLat 类型
+               var rectangle = new AMap.Rectangle({
+                   bounds: mousemoveBound.getBounds(),
+                   strokeColor:'red',
+                   strokeWeight: 6,
+                   strokeOpacity:0.5,
+                   strokeDasharray: [30,10],
+                   // strokeStyle还支持 solid
+                   strokeStyle: 'dashed',
+                   fillColor:'blue',
+                   fillOpacity:0.5,
+                   cursor:'pointer',
+                   zIndex:50
+               });
+               boxes.push(rectangle);
+               map.add(rectangle);
+           }else{
+               alert("请先进入选区模式")
+           }
+        }
+
+        //鼠标移动显示一个
+        function mapMousemoveGetBound(mapEvent){
+            if($("#createBoxes_manual").attr("isSelected")=="true"){
+                // 触发事件的地理坐标，AMap.LngLat 类型
+                var lnglat = mapEvent.lnglat;
+                var sideLength = $("#sideLength").val();
+                var boxCenter = getBoxCenterArray(lnglat,sideLength,1);
+                var bound = getBoxBoundArray(boxCenter,sideLength)[0];
+                mousemoveBound.setBounds(bound);
+            }
+        }
+
+        function mapRightclickGetBound(){
+            $("#createBoxes_manual").click();
+            $("#geometry_geojson").val(toGeoJsonStr(boxes));
+        }
 
         //bind
-        //clickEvent - #createBoxes
+        //clickEvent - #createBoxes_nineBoxes
         //生成预测区
-        $("#createBoxes").click(function () {
+        $("#createBoxes_nineBoxes").click(function () {
             if(userPoint){
                 if(validateInput("#sideLength")){
                     var pattern = $('input[name="boxesCreationMethodRadio"]:checked').val();
@@ -213,8 +340,7 @@
                             boxes.push(rectangle);
                         })
                         map.add(boxes);
-                        var geojsonData = toGeoJsonStr(boxes);
-                        $("#geometry_geojson").val(geojsonData);
+                        $("#geometry_geojson").val(toGeoJsonStr(boxes));
 
                     }else if(pattern === "roadAlong"){
                         if(validateInput("#sideLength")){
@@ -224,6 +350,7 @@
                         //手动选取
                         if(validateInput("#sideLength")){
                             //生成取值范围
+
                         }
                     }
                 }
@@ -580,7 +707,7 @@
                         fillColor:color
                     })
                 }
-             }
+            }
         }
 
         //预测区网格颜色映射，默认为线性映射
@@ -698,8 +825,14 @@
         }
 
         //Tool
-        //按钮单圈的扩展写法，支持多个按钮，添加选取样式的设置
-        function bindSingleChoiceBtnsEvent(buttonsDivId,ignoreIdArray,extendFunction) {
+
+        /**
+         * 按钮单圈的扩展写法，支持多个按钮，添加选取样式的设置
+         * @param buttonsDivId 按钮Id
+         * @param ignoreIdArray 不计入按钮组的按钮
+         * @param extendFunction 点击执行的函数
+         */
+        function bindGroupBtnsSelectedEvent(buttonsDivId,ignoreIdArray,extendFunction) {
             //设置默认值
             ignoreIdArray=ignoreIdArray||[];
             //忽略ignoreArray数组中的按钮
@@ -731,6 +864,42 @@
                 extendFunction();
             }
         }
+
+        /**
+         * 按钮点击事件,样式变更
+         * @param buttonId 按钮Id
+         * @param extendFunction 点击额外执行的函数
+         */
+        function bindSingleBtnSelectedEvent(buttonId,textMap,funMap) {
+            var hasTextMap = (typeof(textMap) != "undefined");
+            var hasFunMap = (typeof(funMap) != "undefined");
+            $(buttonId).click(function () {
+                if($(this).attr("isSelected") == "false"){
+                    //设置被选取样式
+                    $(this).attr("class","btn btn-selected");
+                    $(this).attr("isSelected","true")
+                    if(hasTextMap){
+                        $(this).text(textMap["true"]);
+                    }
+                    if(hasFunMap){
+                        funMap["true"]();
+                    }
+                }else{
+                    //设置未被选取样式
+                    $(this).attr("class","btn");
+                    $(this).attr("isSelected","false")
+                    if(hasTextMap){
+                        $(this).text(textMap["false"]);
+                    }
+                    if(hasFunMap){
+                        funMap["false"]();
+                    }
+                }
+            });
+            //额外执行的无参函数
+
+        }
+
 
         //Tool
         //在输入时检查输入结果的格式
@@ -774,8 +943,24 @@
 
         //bind
         //绑定单选按钮事件
-        function bindSingleChoiceBtns(){
-            bindSingleChoiceBtnsEvent("#locationChoice",["clearLocation"]);
+        function bindGroupBtnsSelected(){
+            bindGroupBtnsSelectedEvent("#locationChoice",["clearLocation"]);
+        }
+
+        function bindSingleBtnSelected() {
+            var textMap = {
+                "true": "选取中",
+                "false":"选择预测区"
+            }
+            var funMap = {
+                "true": function () {
+                    mousemoveBound.show();
+                },
+                "false": function () {
+                    mousemoveBound.hide();
+                }
+            }
+            bindSingleBtnSelectedEvent("#createBoxes_manual",textMap,funMap);
         }
 
         //bind
@@ -824,14 +1009,64 @@
             $("#unitHint").text("单位：" + unitNmae);
         }
 
+        function bindCreateBoxMethodRadioClickEvent(){
+            $("input[name='boxesCreationMethodRadio']").click(function () {
+                var method = $('input[name="unitRadio"]:checked').val();
+                if(method === "nineBoxes" && method === "roadAlong"){
+                    $("#createBoxes_nineBoxes").attr("style","");
+                    $("#createBoxes_nineBoxes").attr("style","");
+                }else if(method === "manual"){
+
+                }
+            })
+        }
+
+        /**
+         * 为radio选项绑定对应的按钮，其他按钮隐藏
+         * @param map 映射的jqueryId radioId -- buttonId
+         * @param radioIdDiv 包裹radios的div
+         * @param buttonDivId 包裹buttons的div
+         * @param extendFunction 额外执行的函数
+         */
+        function bindRadioClickChangedEvent(map,radioIdDiv,buttonDivId,extendFunction) {
+            jQuery.each(map,function (radioId,buttonId) {
+                $(radioId).click(function () {
+                    //隐藏所有的button
+                    $(buttonDivId).find("button").each(function () {
+                        $(this).attr("style","display:none");
+                    })
+                    //显示map映射的button
+                    $(buttonId).removeAttr("style");
+                })
+            });
+            //额外执行的无参函数
+            if(typeof(extendFunction) != "undefined"){
+                extendFunction();
+            }
+        }
+
+        //映射map
+        var radio_button_mapping={
+            "#nineBoxes":"#createBoxes_nineBoxes",
+            "#roadAlong":"#createBoxes_nineBoxes",
+            "#manual":"#createBoxes_manual"
+        };
+
+        function bindRadioClickChanged(){
+            bindRadioClickChangedEvent(radio_button_mapping,"#boxesCreationMethod","#methodButtonGroup");
+        }
+
         //init
         //初始化执行函数
         function init() {
             bindClearInputBtn();
-            bindSingleChoiceBtns();
+            bindGroupBtnsSelected();
+            bindSingleBtnSelected();
             bindKeyUpCheck();
+            bindRadioClickChanged();
             bindBlurRefreshTimeLine();
             bindEnterRefreshTimeLine();
+            bindRadioFunction(radio_function_mapping);
             initStartDate();
             initUnitHint();
             refreshUnitHint();
@@ -1014,7 +1249,7 @@
     <div id="locationChoice" class="singleChoiceBtns">
         <button class="btn" id="chooseUserLocation" isSelected="false">选取用户坐标</button>
         <span>&nbsp;&nbsp;&nbsp;</span>
-        <button class="btn" id="chooseDriverLocation" isSelected="false">选取司机坐标</button>
+        <button class="btn" id="chooseDriverLocation" isSelected="false" >选取司机坐标</button>
         <span>&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="clearLocation" isSelected="false">清除坐标与地址</button>
     </div>
@@ -1030,7 +1265,10 @@
                 <span>手动选取</span>
             </div>
             <div id="boxesManagement">
-                <button class="btn" id="createBoxes">生成预测区</button><br>
+                <div id="methodButtonGroup">
+                    <button class="btn" id="createBoxes_nineBoxes" >生成预测区</button>
+                    <button class="btn" id="createBoxes_manual" style="display:none" isSelected="false">选择预测区</button>
+                </div>
                 <button class="btn" id="clearBoxes">清空预测区</button>
             </div>
         </div>

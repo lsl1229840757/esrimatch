@@ -24,6 +24,7 @@
 
     </style>
     <script src="${path}/js/echarts.min.js"></script>
+    <link rel="stylesheet" href="${path }/css/bootstrap.min.css">
     <script>
 
         $(function () {
