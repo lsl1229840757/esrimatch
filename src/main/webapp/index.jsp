@@ -134,7 +134,7 @@
                     </span>
             </div>
             <div id="collapseThre" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-                <a href="#${path}/commond/commondPage" class="list-group-item">车流量预测与上车地点推荐(张航merge后自己加上去)</a>
+                <a href="#${path}/commond/commondPage" class="list-group-item">车流量预测与上车地点推荐</a>
                 <a href="#${path}/pages/flowAnalyse" class="list-group-item">区域流入流出分析</a>
                 <a href="#${path}/pages/overallStatistics" class="list-group-item">总体统计查询</a>
                 <a href="#${path}/html/analysis.jsp" class="list-group-item">单车统计查询</a>

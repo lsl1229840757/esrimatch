@@ -5,6 +5,7 @@ import cn.esri.service.StatusService;
 import cn.esri.utils.MathUtil;
 import cn.esri.utils.Transform;
 import cn.esri.vo.*;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -13,12 +14,12 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.lang.*;
 import java.util.concurrent.CountDownLatch;
 
 @Service
@@ -33,6 +34,10 @@ public class StatusServiceImpl implements StatusService {
     @Resource(name = "taskExecutor")
     TaskExecutor taskExecutor;
 
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    SimpleDateFormat sdf_to_day_db = new SimpleDateFormat("yyyy_MM_dd");
+
     // TODO 这里的查询暂时没有开事务管理
     @Override
     public List<Status> searchByDistinct(DistinctQuery distinctQuery) {
@@ -46,13 +51,13 @@ public class StatusServiceImpl implements StatusService {
                 return statuses;
             }
             Map<String, Object> queryMap = new HashMap<>();
+            //指定查询的数据库
+            String db_name = "data_" + sdf_to_day_db.format(distinctQuery.getStart_time());
+            //填充查询参数
             queryMap.put("start_time", distinctQuery.getStart_time());
             queryMap.put("end_time", distinctQuery.getEnd_time());
             queryMap.put("district_geojson", geometryStr);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy_MM_dd");
-            // 表单名字和日期一致
-            String formName = "data_"+simpleDateFormat.format(distinctQuery.getStart_time());
-            queryMap.put("formName", formName);
+            queryMap.put("day_db", db_name);
             statuses.addAll(session.selectList("cn.esri.mapper.StatusNS.searchByDistinct", queryMap));
         }
         // 坐标转换,把wgs坐标转为GCJ02
@@ -63,57 +68,6 @@ public class StatusServiceImpl implements StatusService {
         }
         return statuses;
     }
-
-    @Override
-    public JSONObject flowAnalyse(DistinctQuery distinctQuery) {
-        JSONObject jsonObject = new JSONObject();
-        List<List<Status>> allData = new ArrayList<>();
-        // 查询5个小时的数据
-        int k = 5;
-        //处理时间
-        List<String> timeList = new ArrayList<>();
-        for(int i=0;i<k;i++){
-            DistinctQuery ds = distinctQuery.clone();
-            long temptTime = ds.getStart_time().getTime()+i*1000*3600;
-            Date date = new Date(temptTime);
-            ds.setStart_time(date);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-            timeList.add(simpleDateFormat.format(date));
-            List<Status> statuses = searchByDistinct(ds);
-            allData.add(statuses);
-        }
-        // 开始处理数据
-        for (int i=0;i<k-1;i++){
-            Set<Integer> set = list2Set(allData.get(i));
-            Set<Integer> retain = list2Set(allData.get(i));
-            Set<Integer> set1 = list2Set(allData.get(i+1));
-            //求交集
-            retain.retainAll(set1);
-            //求流出数据
-            set.removeAll(retain);
-            //求流入数据
-            set1.removeAll(retain);
-            JSONObject json = new JSONObject();
-            json.put("in", new ArrayList<>(set1));
-            json.put("out", new ArrayList<>(set));
-            jsonObject.put(timeList.get(i+1), json);
-        }
-        return jsonObject;
-    }
-
-
-
-
-
-    private Set<Integer> list2Set(List<Status> list){
-        Set<Integer> set = new HashSet<>();
-        for (Status status:list){
-            set.add(status.getCar_id());
-        }
-        return set;
-    }
-
-
 
     /**
      *  根据geometry在数据库中查询对应的缓冲区
@@ -158,7 +112,10 @@ public class StatusServiceImpl implements StatusService {
             Map<String, Object> queryMap = new HashMap<>();
             queryMap.put("start_time", buffersQuery.getStart_time());
             queryMap.put("end_time", buffersQuery.getEnd_time());
+            //指定查询的数据库
+            String db_name = "data_" + sdf_to_day_db.format(buffersQuery.getStart_time());
             queryMap.put("buffers_geojson", geometryStr);
+            queryMap.put("day_db", db_name);
             statuses.addAll(session.selectList("cn.esri.mapper.StatusNS.searchByBuffers", queryMap));
         }
         // 坐标转换,把wgs坐标转为GCJ02
@@ -171,7 +128,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     /**
-     * 根据PredictQuery中提供的参数查询车辆历史数据
+     * 根据PredictQuery的参数查询车辆历史数据
      * @param predictQuery 用于查询预测数据的查询参数
      * @return 历史数据查询结果， 时间段为key，查询结果为value， List<List<Status>>中储存各查询网格的车辆状态详细信息
      */
@@ -179,12 +136,15 @@ public class StatusServiceImpl implements StatusService {
     public Map<String, List<List<Status>>> searchPickUpSpotStatusData(PredictQuery predictQuery) {
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
         Map<String, List<List<Status>>> result = new LinkedHashMap<String, List<List<Status>>>();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         for (int i = 0;i < predictQuery.getIntervalNum(); i ++){
+            //获取查询时间段信息
             List<List<Status>> statusArray = new ArrayList<List<Status>>();
             Date start_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*i);
             Date end_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*(i+1));
+            //指定查询的数据库
+            String db_name = "data_" + sdf_to_day_db.format(start_time);
             for(int j = 0; j < predictBoxJsonArray.size(); j++){
+                //为指定查询区域填充参数
                 List<Status> statusesResult = new ArrayList<Status>();
                 JSONObject predictBoxJson = predictBoxJsonArray.getJSONObject(j);
                 String predictBoxGeometry = predictBoxJson.getString("geometry");
@@ -192,6 +152,7 @@ public class StatusServiceImpl implements StatusService {
                 queryMap.put("start_time", start_time);
                 queryMap.put("end_time", end_time);
                 queryMap.put("buffers_geojson", predictBoxGeometry);
+                queryMap.put("day_db",db_name);
                 statusesResult.addAll(this.session.selectList("cn.esri.mapper.StatusNS.searchByBuffers", queryMap));
                 // 坐标转换,把wgs坐标转为GCJ02
                 for (Status status:statusesResult){
@@ -221,7 +182,6 @@ public class StatusServiceImpl implements StatusService {
         CountDownLatch countDownLatch = new CountDownLatch(2);
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
         Map<String, List<Integer>> result = new LinkedHashMap<String, List<Integer>>();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         // 开始时段的车辆统计
         List<Integer> start_period = new ArrayList<>();
@@ -232,18 +192,21 @@ public class StatusServiceImpl implements StatusService {
                 continue;
             Date start_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*i);
             Date end_time = new Date(predictQuery.getOldest_time().getTime() + predictQuery.getInterval()*(i+1));
+            //指定查询的数据库
+            String db_name = "data_" + sdf_to_day_db.format(start_time);
             final int iFinal = i;
             taskExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
                     for(int j = 0; j < predictBoxJsonArray.size(); j++){
-                        // 当最后一段和第一段才查询
+                         // 当最后一段和第一段才查询
                         JSONObject predictBoxJson = predictBoxJsonArray.getJSONObject(j);
                         String predictBoxGeometry = predictBoxJson.getString("geometry");
                         Map<String, Object> queryMap = new HashMap<>();
                         queryMap.put("start_time", start_time);
                         queryMap.put("end_time", end_time);
                         queryMap.put("buffers_geojson", predictBoxGeometry);
+                        queryMap.put("day_db",db_name);
                         int count = session.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
                         if(iFinal == 0)
                             start_period.add(count);
@@ -274,7 +237,7 @@ public class StatusServiceImpl implements StatusService {
     }
     @Override
     public Map<Integer, Map<String, Double>> predictByStatus(Map<Integer, Map<String, List<Status>>> boxStatusData,PredictQuery predictQuery) {
-        //TODO
+       //TODO
         return null;
     }
 
@@ -283,7 +246,6 @@ public class StatusServiceImpl implements StatusService {
         JSONArray featureArray = JSONArray.fromObject( predictQuery.getGeometry_geojson());
         int old_step = boxStatusData.size();
         int predict_step = 4;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //临时储存预测数据
         List<List<Integer>> temp = new ArrayList<List<Integer>>();
         //添加预测数据存储结构
@@ -313,4 +275,52 @@ public class StatusServiceImpl implements StatusService {
         }
         return boxStatusData;
     }
+
+    @Override
+    public JSONObject flowAnalyse(DistinctQuery distinctQuery) {
+        JSONObject jsonObject = new JSONObject();
+        List<List<Status>> allData = new ArrayList<>();
+        // 查询5个小时的数据
+        int k = 5;
+        //处理时间
+        List<String> timeList = new ArrayList<>();
+        for(int i=0;i<k;i++){
+            DistinctQuery ds = distinctQuery.clone();
+            long temptTime = ds.getStart_time().getTime()+i*1000*3600;
+            Date date = new Date(temptTime);
+            ds.setStart_time(date);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+            timeList.add(simpleDateFormat.format(date));
+            List<Status> statuses = searchByDistinct(ds);
+            allData.add(statuses);
+        }
+        // 开始处理数据
+        for (int i=0;i<k-1;i++){
+            Set<Integer> set = list2Set(allData.get(i));
+            Set<Integer> retain = list2Set(allData.get(i));
+            Set<Integer> set1 = list2Set(allData.get(i+1));
+            //求交集
+            retain.retainAll(set1);
+            //求流出数据
+            set.removeAll(retain);
+            //求流入数据
+            set1.removeAll(retain);
+            JSONObject json = new JSONObject();
+            json.put("in", new ArrayList<>(set1));
+            json.put("out", new ArrayList<>(set));
+            jsonObject.put(timeList.get(i+1), json);
+        }
+        return jsonObject;
+    }
+
+    private Set<Integer> list2Set(List<Status> list){
+        Set<Integer> set = new HashSet<>();
+        for (Status status:list){
+            set.add(status.getCar_id());
+        }
+        return set;
+    }
+
+
 }
+

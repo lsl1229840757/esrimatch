@@ -3,6 +3,7 @@
         "http://mybatis.apache.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="cn.esri.mapper.StatusNS">
+
     <resultMap id="StatusResultMap" type="Status">
         <result property="car_id" column="car_id"/>
         <result property="id" column="id"/>
@@ -13,15 +14,33 @@
         <result property="azimuth" column="azimuth"/>
     </resultMap>
 
-
-    <select id="searchByDistinct" parameterType="map" resultMap="StatusResultMap">
-        select id,car_id,lon,lat,passenger_status from ${formName}
+    <select id="searchByDistinct" parameterType="map" resultType="Status">
+        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
         where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
         ,ST_GeomFromGeoJSON(#{district_geojson}))
+        <!--select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data-->
+        <!--where receive_time = #{start_time} and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')-->
+        <!--,ST_GeomFromGeoJSON(#{district_geojson}))-->
     </select>
-    <select id="selectTest" parameterType="DistinctQuery" resultMap="StatusResultMap">
-        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data
+    <select id="selectTest" parameterType="DistinctQuery" resultType="Status">
+        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
         where receive_time = #{start_time}
     </select>
 
+    <select id="createBuffers" parameterType="map" resultType="map">
+        SELECT ST_AsGeoJSON(ST_Buffer(
+        ST_GeomFromGeoJSON(#{polylines_geojson} ), #{radius}, 'endcap=round join=round'))
+        as buffers_geojson
+    </select>
+
+    <select id="searchByBuffers" parameterType="map" resultType="Status">
+        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
+        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
+        ,ST_GeomFromGeoJSON(#{buffers_geojson}))
+    </select>
+    <select id="searchCountByGeometry" parameterType="map" resultType="int">
+        select count(*) from ${day_db}
+        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
+        ,ST_GeomFromGeoJSON(#{buffers_geojson}))
+    </select>
 </mapper>
