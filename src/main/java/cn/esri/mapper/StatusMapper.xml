@@ -5,7 +5,7 @@
 <mapper namespace="cn.esri.mapper.StatusNS">
 
     <select id="searchByDistinct" parameterType="map" resultType="Status">
-        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from data_1
+        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
         where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
         ,ST_GeomFromGeoJSON(#{district_geojson}))
         <!--select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data-->
@@ -13,7 +13,7 @@
         <!--,ST_GeomFromGeoJSON(#{district_geojson}))-->
     </select>
     <select id="selectTest" parameterType="DistinctQuery" resultType="Status">
-        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from data_1
+        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
         where receive_time = #{start_time}
     </select>
 
@@ -24,12 +24,12 @@
     </select>
 
     <select id="searchByBuffers" parameterType="map" resultType="Status">
-        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from data_1
+        select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
         where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
         ,ST_GeomFromGeoJSON(#{buffers_geojson}))
     </select>
     <select id="searchCountByGeometry" parameterType="map" resultType="int">
-        select count(*) from data_1
+        select count(*) from ${day_db}
         where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
         ,ST_GeomFromGeoJSON(#{buffers_geojson}))
     </select>
