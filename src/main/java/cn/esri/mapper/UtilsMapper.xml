@@ -4,9 +4,12 @@
 
 <mapper namespace="cn.esri.mapper.UtilsNS">
 
-
     <select id="getDistance" parameterType="map" resultType="double">
         select ST_Distance(ST_GeomFromGeoJSON(#{point}), ST_GeomFromGeoJSON(#{polyline}))
+    </select>
+
+    <select id="getNearnestPoint" parameterType="map" resultType="map">
+        select ST_AsGeoJSON(ST_ClosestPoint(ST_GeomFromGeoJSON(#{point}), ST_GeomFromGeoJSON(#{geometry}))) as closest_point;
     </select>
 
 </mapper>

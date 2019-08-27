@@ -1,5 +1,5 @@
-const BASE_URL = 'http://piaoyang.xyz:8080/traffic-system/';
-
+// const BASE_URL = 'http://piaoyang.xyz:8080/traffic-system/';
+const BASE_URL = '';
 const DEBUG = true;
 /**
  * 直接返回data

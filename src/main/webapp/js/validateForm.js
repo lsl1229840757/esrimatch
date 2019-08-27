@@ -1,13 +1,31 @@
-function form2JsonString(formId) {
+function form2JsonString(formId,ignoreNameArray) {
+    ignoreNameArray=ignoreNameArray||[];
     var paramArray = $(formId).serializeArray();
     /*请求参数转json对象*/
     var jsonObj={};
     $(paramArray).each(function(){
-        jsonObj[this.name]=this.value;
+        if(ignoreNameArray.length === 0 || $.inArray(this.name,ignoreNameArray) < 0){
+            jsonObj[this.name]=this.value;
+        }
     });
     console.log(jsonObj);
     // json对象再转换成json字符串
     return JSON.stringify(jsonObj);
+}
+
+function form2JsonObject(formId,ignoreNameArray) {
+    ignoreNameArray=ignoreNameArray||[];
+    var paramArray = $(formId).serializeArray();
+    /*请求参数转json对象*/
+    var jsonObj={};
+    $(paramArray).each(function(){
+        if(ignoreNameArray.length === 0 || $.inArray(this.name,ignoreNameArray) < 0){
+            jsonObj[this.name]=this.value;
+        }
+    });
+    console.log(jsonObj);
+    // json对象再转换成json字符串
+    return jsonObj;
 }
 
 function validateForm(formName) {
@@ -41,6 +59,31 @@ function validateForm(formName) {
                 flag = false;
                 return false;
             }
+        }
+    });
+    return flag;
+}
+
+function validateInput(inputName) {
+    //取值
+    var inputDom = $(inputName);
+    var regex = new RegExp(inputDom.attr('regr'));
+    var value = inputDom.val();
+    var flag = regex.test(value);
+    if(!flag){
+        inputDom.css("background", "#FFAC8C");
+    }else{
+        inputDom.css("background", "white");
+    }
+    return flag;
+}
+
+function validateInputArray(inputNameArray) {
+    var flag = true;
+    inputNameArray.forEach(function (inputName) {
+        if(!validateInput(inputName)){
+            flag = false;
+            return false;
         }
     });
     return flag;

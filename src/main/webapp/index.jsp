@@ -119,7 +119,7 @@
                     </span>
             </div>
             <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-                <a href="#${path}/html/track.html" class="list-group-item">车辆轨迹追踪</a>
+                <a href="#${path}/html/track.jsp" class="list-group-item">车辆轨迹追踪</a>
                 <a href="#${path}/pages/distinctSearchPage" class="list-group-item">区域热点查询</a>
             </div>
         </div>
@@ -134,9 +134,9 @@
                     </span>
             </div>
             <div id="collapseThre" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-                <a href="#" class="list-group-item">车流量预测与上车地点推荐(张航merge后自己加上去)</a>
+                <a href="#${path}/commond/commondPage" class="list-group-item">车流量预测与上车地点推荐(张航merge后自己加上去)</a>
                 <a href="#${path}/pages/overallStatistics" class="list-group-item">总体统计查询</a>
-                <a href="#" class="list-group-item">单车统计查询(罗运merge后自己加上去)</a>
+                <a href="#${path}/html/analysis.jsp" class="list-group-item">单车统计查询</a>
             </div>
         </div>
 
