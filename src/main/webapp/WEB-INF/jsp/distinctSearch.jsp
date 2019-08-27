@@ -20,7 +20,6 @@
         }
     </script>
     <script>
-        var heatmap;
         $(function(){
             //初始化地图对象，加载地图
             var map = new AMap.Map("container", {
@@ -50,7 +49,6 @@
                 // 开始搜索事件
                 district.search($("#district").val(), function (status, result) {
                     map.remove(polygons); //清除上次结果
-
                     polygons = [];
                     if(result.districtList.length < 1){
                         alert("搜索不到该区域!")
@@ -71,6 +69,8 @@
                             polygons.push(polygon);
                         }
                     }
+                    map.add(polygons);
+                    map.setFitView(polygons);//视口自适应
                     //将overlays转换为geojson
                     var geojson = new AMap.GeoJSON({
                         geoJSON: null,
@@ -115,9 +115,7 @@
                                     result[i].count = 1;
                                     result[i].lng = result[i].lon;
                                 }
-                                if(heatmap!==undefined){
-                                    heatmap.setMap(null);
-                                }
+                                var heatmap;
                                 map.plugin(["AMap.Heatmap"], function () {
                                     //初始化heatmap对象
                                     heatmap = new AMap.Heatmap(map, {
