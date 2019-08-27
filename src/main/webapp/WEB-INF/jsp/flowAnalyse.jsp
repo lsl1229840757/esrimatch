@@ -130,6 +130,8 @@
                             polygons.push(polygon);
                         }
                     }
+                    map.add(polygons)
+                    map.setFitView(polygons);//视口自适应
                     //将overlays转换为geojson
                     var geojson = new AMap.GeoJSON({
                         geoJSON: null,
@@ -163,7 +165,7 @@
                             data:jsonData,
                             async: true,
                             success: function (result) {
-                                console.log(result);
+                                alert("分析完成!");
                                 var timeList = [];
                                 var inData = [];
                                 var outData = [];
@@ -172,16 +174,10 @@
                                     inData.push(result[key]["in"].length);
                                     outData.push(result[key]["out"].length);
                                 }
-
-
-
                                 // 绘制echarts图表
                                 var myChart = echarts.init(document.getElementById("chart"));
 
                                 var option = {
-                                    title: {
-                                        text: '堆叠区域图'
-                                    },
                                     tooltip : {
                                         trigger: 'axis',
                                         axisPointer: {
@@ -346,9 +342,11 @@
     </form>
     <input id="draw" type="button" class="btn" value="查询" />
 </div>
-<div id="sidebar">
-    <div id="chart" style="width:100%; height:50%;"></div>
-
+<div id="sidebar" style="color:black">
+    <h3>
+        区域流入流出分析
+    </h3>
+    <div id="chart" style="width:100%; height:50%; position: relative;top: 30%"></div>
 </div>
 <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=69c9fa525cc6a9fc45b7c95409172398&plugin=AMap.DistrictSearch"></script>
 
