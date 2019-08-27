@@ -17,4 +17,9 @@ public class PageController {
     public ModelAndView overallStatisticsPage(){
         return new ModelAndView("overallStatistics");
     }
+
+    @RequestMapping("flowAnalyse")
+    public ModelAndView flowAnalysePage(){
+        return new ModelAndView("flowAnalyse");
+    }
 }

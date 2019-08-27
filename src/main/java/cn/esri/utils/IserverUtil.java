@@ -52,7 +52,12 @@ public class IserverUtil {
             // 从响应模型中获取响应实体
             HttpEntity responseEntity = response.getEntity();
             if (responseEntity != null) {
+
                 result = JSONObject.fromObject(EntityUtils.toString(responseEntity));
+                if(result.getJSONArray("features").size() == 0){
+                    result.put("success", 0);
+                    return result;
+                }
                 result.put("success", 1);
                 return result;
             }

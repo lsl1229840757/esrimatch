@@ -85,4 +85,18 @@ public class Status implements Serializable{
     public void setReceive_time(Date receive_time) {
         this.receive_time = receive_time;
     }
+
+    @Override
+    public String toString() {
+        return "Status{" +
+                "id=" + id +
+                ", car_id=" + car_id +
+                ", lon=" + lon +
+                ", lat=" + lat +
+                ", speed=" + speed +
+                ", azimuth=" + azimuth +
+                ", passenger_status=" + passenger_status +
+                ", receive_time=" + receive_time +
+                '}';
+    }
 }
