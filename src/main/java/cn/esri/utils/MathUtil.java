@@ -23,10 +23,18 @@ public class MathUtil {
      * @return 返回差值后的list
      */
     public static List<Integer> linearFit(Integer start, Integer end, Integer num){
+
+        int flag = 0;
+        if(Math.random()>0.5){
+            flag = 1;
+        }else {
+            flag = -1;
+        }
+
         double delta =  (end - start + 0.0) / num;
         List<Integer> result = new ArrayList<>();
         for(int i=0; i<num; i++){
-            result.add((int)(start+delta*i));
+            result.add((int)(start+delta*i+Math.random()*delta*num*flag));
         }
         return result;
     }

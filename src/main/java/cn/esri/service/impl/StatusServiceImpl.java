@@ -14,6 +14,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -28,6 +29,10 @@ public class StatusServiceImpl implements StatusService {
     //自动控制session
     @Resource
     SqlSessionTemplate session;
+    //sessionfatory
+    @Resource
+    SqlSessionFactory sessionFactory;
+
     @Resource
     ForecastingService forecastingService;
 
@@ -175,6 +180,8 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) {
+        SqlSession session1 = sessionFactory.openSession();
+
         // 以区域优先查询
         int boxNum = JSONArray.fromObject(predictQuery.getGeometry_geojson()).size();
         // 一个区域执行两次,首末两次查询
@@ -206,7 +213,7 @@ public class StatusServiceImpl implements StatusService {
                         queryMap.put("end_time", end_time);
                         queryMap.put("buffers_geojson", predictBoxGeometry);
                         queryMap.put("day_db",db_name);
-                        int count = session.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
+                        int count = session1.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
                         if(iFinal == 0)
                             start_period.add(count);
                         else
