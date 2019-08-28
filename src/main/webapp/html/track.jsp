@@ -41,7 +41,6 @@
             display: inline-block;
             text-align: center;
         }
-        
     </style>
 </head>
 
@@ -57,11 +56,13 @@
                     </a>
                 </span>
             </div>
-            <div>
-                <a href="#" class="list-group-item" v-for="car in cars" v-on:click="getPath(car)">
-                    {{ car }}
-                </a>
-            </div>
+            <input type="date" v-model='day'>
+            <input type="number" v-model.number='id' placeholder="车ID" list="ids" @input='loadCarId'>
+            <datalist id="ids">
+                <option v-for='i in ids' :value="i">
+            </datalist>
+            <button @click='getPath'>显示路径</button>
+            <button @click='analysis'>跳转单车分析</button>
         </div>
     </div>
 </body>
@@ -71,7 +72,10 @@
     integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous">
 </script>
 <script>
-var path = '${pageContext.request.contextPath }'
+    var path = '${pageContext.request.contextPath}/'
 </script>
-<script src="../js/track.js" type="module"></script>
+<script src="./gcoord.js"></script>
+<script src="./turf.js"></script>
+<script src="../js/track.js"></script>
+
 </html>
