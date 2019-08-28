@@ -20,6 +20,7 @@
         }
     </script>
     <script>
+        var heatmap;
         $(function(){
             //初始化地图对象，加载地图
             var map = new AMap.Map("container", {
@@ -115,7 +116,9 @@
                                     result[i].count = 1;
                                     result[i].lng = result[i].lon;
                                 }
-                                var heatmap;
+                                if(heatmap != undefined){
+                                    heatmap.setMap(null);
+                                }
                                 map.plugin(["AMap.Heatmap"], function () {
                                     //初始化heatmap对象
                                     heatmap = new AMap.Heatmap(map, {

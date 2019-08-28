@@ -26,9 +26,9 @@ import java.util.concurrent.CountDownLatch;
 @Service
 public class StatusServiceImpl implements StatusService {
 
-    //自动控制session
-    @Resource
-    SqlSessionTemplate session;
+//    //自动控制session
+//    @Resource
+//    SqlSessionTemplate session;
     //sessionfatory
     @Resource
     SqlSessionFactory sessionFactory;
@@ -45,6 +45,7 @@ public class StatusServiceImpl implements StatusService {
 
     @Override
     public List<Status> searchByDistinct(DistinctQuery distinctQuery) {
+        SqlSession session = sessionFactory.openSession();
         JSONArray distinctJsonArray = JSONArray.fromObject(distinctQuery.getDistrict_geojson());
         List<Status> statuses = new ArrayList<>();
         // 因为有可能有多个polygon所以持久层用map处理
@@ -80,6 +81,7 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public List<String> createBuffers(PolylinesQuery polylinesQuery) {
+        SqlSession session = sessionFactory.openSession();
         List<String> bufferJsonArray = new ArrayList<String>();
         Map<String,Object> queryMap = new HashMap<String, Object>();
         JSONArray featureJsonArray = JSONArray.fromObject(polylinesQuery.getPolylines_geojson());
@@ -104,6 +106,8 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public List<Status> searchByBuffers(BuffersQuery buffersQuery) {
+        SqlSession session = sessionFactory.openSession();
+
         JSONArray BufferFeatureJsonArray = JSONArray.fromObject(buffersQuery.getBuffers_geojson());
         List<Status> statuses = new ArrayList<>();
         // 因为有可能有多个polygon所以持久层用map处理
@@ -138,6 +142,8 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public Map<String, List<List<Status>>> searchPickUpSpotStatusData(PredictQuery predictQuery) {
+        SqlSession session = sessionFactory.openSession();
+
         JSONArray predictBoxJsonArray = JSONArray.fromObject(predictQuery.getGeometry_geojson());
         Map<String, List<List<Status>>> result = new LinkedHashMap<String, List<List<Status>>>();
         for (int i = 0;i < predictQuery.getIntervalNum(); i ++){
@@ -157,7 +163,7 @@ public class StatusServiceImpl implements StatusService {
                 queryMap.put("end_time", end_time);
                 queryMap.put("buffers_geojson", predictBoxGeometry);
                 queryMap.put("day_db",db_name);
-                statusesResult.addAll(this.session.selectList("cn.esri.mapper.StatusNS.searchByBuffers", queryMap));
+                statusesResult.addAll(session.selectList("cn.esri.mapper.StatusNS.searchByBuffers", queryMap));
                 // 坐标转换,把wgs坐标转为GCJ02
                 for (Status status:statusesResult){
                     double[] lonlat = Transform.transformWGS84ToGCJ02(status.getLon(), status.getLat());
@@ -180,7 +186,7 @@ public class StatusServiceImpl implements StatusService {
      */
     @Override
     public Map<String, List<Integer>> searchPickUpSpotCount(PredictQuery predictQuery) {
-        SqlSession session1 = sessionFactory.openSession();
+        SqlSession session = sessionFactory.openSession();
 
         // 以区域优先查询
         int boxNum = JSONArray.fromObject(predictQuery.getGeometry_geojson()).size();
@@ -213,7 +219,7 @@ public class StatusServiceImpl implements StatusService {
                         queryMap.put("end_time", end_time);
                         queryMap.put("buffers_geojson", predictBoxGeometry);
                         queryMap.put("day_db",db_name);
-                        int count = session1.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
+                        int count = session.selectOne("cn.esri.mapper.StatusNS.searchCountByGeometry", queryMap);
                         if(iFinal == 0)
                             start_period.add(count);
                         else
