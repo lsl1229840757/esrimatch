@@ -40,6 +40,7 @@ public class TrackController {
         return trackMapper.getById(id);
     }
 
+    @JsonResult
     @ResponseBody
     @RequestMapping("get_by_date")
     public List<Map> getByDate(Integer id, String day){
