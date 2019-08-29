@@ -259,6 +259,7 @@
             };
 
             // 使用刚指定的配置项和数据显示图表。
+            myChart.clear();
             myChart.setOption(option, true);
 
             app.msg = '';
@@ -314,7 +315,7 @@
             console.log(count_time);
             console.log(count_length);
 
-            option = {
+            var option = {
                 title: {
                     text: '单车各指标'
                 },
@@ -373,6 +374,7 @@
                     }
                 }]
             };
+            myChart2.clear();
             myChart2.setOption(option, true);
         }
 

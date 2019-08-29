@@ -202,6 +202,7 @@
                             data: jsonData,
                             async: true,
                             success: function (result) {
+                                console.log(result);
                                 alert("分析完成!");
                                 var timeList = [];
                                 var inData = [];
@@ -390,7 +391,7 @@
             <div class="input-item-prepend">
                 <span class="input-item-text">查询时间</span>
             </div>
-            <input id='start_time' name="start_time" class="input-iteb m-copy" type="datetime-local" regr="\S"
+            <input id='start_time' name="start_time" class="input-item-copy" type="datetime-local" regr="\S"
                    tip="请按规范填写日期!">
             <%--隐藏域--%>
             <input id="district_geojson" name="district_geojson" type="hidden">

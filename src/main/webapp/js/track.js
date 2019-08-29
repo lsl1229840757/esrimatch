@@ -29,6 +29,7 @@ var traffic = new AMap.TileLayer.Traffic({
 var map = new AMap.Map('container', {
     layers: [layer, traffic], //当只想显示标准图层时layers属性可缺省
     mapStyle: 'amap://styles/whitesmoke', //设置地图的显示样式
+    center: [116.397428, 39.90923]//地图中心点
 });
 
 // 初始化UI组件

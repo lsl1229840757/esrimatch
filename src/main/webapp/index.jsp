@@ -154,12 +154,12 @@
                 </a>
                 <a href="#${path}/pages/overallStatistics" class="list-group-item">
                     <span class="fa fa-pie-chart">
-                        总体统计查询
+                        总体统计分析
                     </span>
                 </a>
                 <a href="#${path}/html/analysis.jsp" class="list-group-item">
                     <span class="fa fa-bar-chart">
-                        单车统计查询
+                        单车统计分析
                     </span>
                 </a>
             </div>
