@@ -140,6 +140,7 @@
         var resultRoadUnit = null;
         var currentBoxData = [];
         var currentBoxIndex = 0;
+        var timePeriod = [];
 
         var map = new AMap.Map("container", {
             resizeEnable: true,
@@ -319,7 +320,8 @@
                     if(pattern === "nineBoxes"){
                         var centerPoint = userPoint.getPosition();
                         var sideLength = parseFloat($("#sideLength").val()) ;
-                        centerPointArray = getBoxCenterArray(centerPoint,sideLength,2);
+                        var sideNum = parseFloat($("#sideNum").val());
+                        centerPointArray = getBoxCenterArray(centerPoint,sideLength,sideNum);
                         boxBoundArray = getBoxBoundArray(centerPointArray,sideLength);
                         map.remove(boxes);
                         boxes = [];
@@ -445,11 +447,15 @@
                             success: function (result) {
                                 jQuery.each(result,function (key,value) {
                                     statusCountData.push(value);
-                                })
-                                refreshTimeLine();
+                                    timePeriod.push(key);
+                                });
+                                //时间轴更新后，重新渲染当前预测区，恢复默认色彩
+                                bindTimeLine();
+                                refreshBox(currentBoxIndex);
                                 $("#awaitHint").text("");
                             },
                             error: function (errorMessage) {
+                                $("#awaitHint").text("数据获取失败,请重新获取");
                                 alert("XML request Error");
                             }
                         });
@@ -481,7 +487,7 @@
         //预测推荐地点
         $("#predictPickUpSpot").click(function (e) {
             if(statusCountData.length){
-                var index = predictParam["intervalNum"] + parseInt($("#predictCertainTime").val());
+                var index = predictParam["intervalNum"] + parseInt($("#predictCertainTime").val()) - 1;
                 var analyzeArrayData = statusCountData[index];
                 var maxIndex = getMaxRectIndex(analyzeArrayData);
                 var center = centerPointArray[maxIndex];
@@ -544,8 +550,8 @@
                                     $("#awaitHint").val("");
                                 },
                                 error: function (errorMessage) {
+                                    $("#awaitHint").val("推荐地点计算失败，请重新尝试");
                                     alert("XML request Error");
-                                    $("#awaitHint").val("");
                                 }
                             })
                         }
@@ -664,50 +670,92 @@
             return  timeMap[unitName] * timeNum;
         }
 
-        //更新时间轴渲染
-        function refreshTimeLine(){
+        //初始化时间轴，根据相关参数改变时间轴长度
+        function initTimeLine(){
+            //清空数据
+            currentBoxIndex = 0;
+            statusCountData = [];
+            refreshPeriodHint();
             var predictParam = getPredictParam();
             var old_date = new Date(predictParam["oldest_time"]);
             var timeLineNum = predictParam["intervalNum"] + parseInt($("#predictCertainTime").val());
             //清除li
             $("#events").find("ol").empty();
+            //添加新的li，并用过indexTag绑定下标
             for(var i = 0; i < timeLineNum; i++){
                 var date = new Date( old_date.getTime() + i*predictParam["interval"]);
                 var data2dateStr = moment(date).format("DD/MM/YYYYTHH:mm");
                 var dateShowText = moment(date).format("YYYY-MM-DD HH:mm");
-                $("#events").find("ol").append('<li><a href=\"#0\" indexTag=\"'+ i + ' \" data-date=\"'+ data2dateStr +'\">' + dateShowText + '</a></li>');
+                $("#events").find("ol").append('<li><a href=\"#0\" indexTag=\"'+ i + '\" data-date=\"'+ data2dateStr +'\">' + dateShowText + '</a></li>');
             }
+            //指定最小间隔为120px，起始偏移为60px
+            initTimeLineO(120,60);
+            //恢复默认填充color
+            refreshBox(currentBoxIndex);
+        }
+
+        //绑定数据，为节点绑定指定渲染数据
+        function bindTimeLine(){
             //为li绑定refreshBoxData
             if(statusCountData.length){
                 $("#events").find("a").each((function () {
                     var i = parseInt($(this).attr("indexTag"));
                     $(this).click(function () {
                         currentBoxIndex = i;
-                        refreshBoxData(i);
+                        refreshBox(i);
+                        refreshPeriodHint();
                     })
                 }))
             }
-            //指定最小间隔为120px，起始偏移为60px
-            initTimeLineO(120,60);
-            //时间轴更新后，重新渲染当前预测区
-            refreshBoxData(currentBoxIndex);
+            //时间轴更新后，重新渲染当前预测区，恢复默认色彩
+            refreshBox(currentBoxIndex);
+            refreshPeriodHint();
         }
 
-        //为预测区更新指定index（时间）的数据，映射为指定色彩
-        function refreshBoxData(n){
-            currentBoxData = statusCountData[n];
-            if(currentBoxData){
-                var max = Math.max.apply(null,currentBoxData);
-                var min = Math.min.apply(null,currentBoxData);
+        function refreshPeriodHint(){
+            if(statusCountData.length){
+                if(currentBoxIndex < predictParam["intervalNum"]) {
+                    $("#toForecastTimeProied").text("预测时间段：" + "此为过往时间段");
+                }else if(currentBoxIndex >= predictParam["intervalNum"] + parseInt($("#predictCertainTime").val())){
+                    $("#toForecastTimeProied").text("预测时间段：" + "超出预测时间");
+                }else {
+                    $("#toForecastTimeProied").text("预测时间段：" + timePeriod[currentBoxIndex]);
+                }
+            }else{
+                $("#toForecastTimeProied").text("预测时间段：" + "（请先获取数据）");
+            }
+        };
+
+        /**
+         * 为预测区更新指定index（时间）的数据，映射为指定色彩
+         * 有数据则根据数据渲染为指定颜色
+         * 没有数据则渲染为默认颜色
+         * @param n 渲染的时间点下标
+         */
+        function refreshBox(n){
+            if(statusCountData.length){
+                currentBoxData = statusCountData[n];
+                if(currentBoxData){
+                    var max = Math.max.apply(null,currentBoxData);
+                    var min = Math.min.apply(null,currentBoxData);
+                    for(var i = 0; i < currentBoxData.length; i++){
+                        var data = currentBoxData[i];
+                        //获取映射color
+                        var color = mapColor(data,max,min);
+                        boxes[i].setOptions({
+                            fillColor:color
+                        })
+                    }
+                }
+            }else{
+                //如果没有数据，则渲染为默认颜色
                 for(var i = 0; i < currentBoxData.length; i++){
-                    var data = currentBoxData[i];
-                    //获取映射color
-                    var color = mapColor(data,max,min);
                     boxes[i].setOptions({
-                        fillColor:color
+                        fillColor:'blue'
                     })
                 }
             }
+
         }
 
         //预测区网格颜色映射，默认为线性映射
@@ -728,6 +776,11 @@
             var size = Object.getOwnPropertyNames(colorMap).length;
             var index = Math.floor((data - min)/ (max - min) * (size - 1));
             return colorMap[ index + ''];
+        }
+
+        //Tool TODO 暂时用于判断对象数据相等
+        function isEqual(obj1,obj2){
+            return JSON.stringify(obj1) === JSON.stringify(obj2);
         }
 
         //AMap.plugin
@@ -773,6 +826,9 @@
                 autoFitView:false
             })
         });
+        AMap.plugin('AMap.PolyEditor', function() {
+            var polyEditor = new AMap.PolyEditor(map, polyline)
+        });
 
         //将overlays转换为geojson
         function toGeoJsonStr(overlayerArray){
@@ -796,6 +852,10 @@
             // 给隐藏域添加数据
             return JSON.stringify(geojson.toGeoJSON());
         }
+
+
+
+
 
         //Tool
         //获取被选择button的Id
@@ -911,18 +971,24 @@
 
         //Tool
         // 在jquery指明的输入框失去焦点时，更新时间轴
-        function bindBlurRefreshTimeLineEvent(jqueryId){
+        function bindBlurInitTimeLineEvent(jqueryId){
             $(jqueryId).blur(function (e) {
-                refreshTimeLine();
+                //如果参数未改变则不更新时间轴
+                if(!isEqual(predictParam,getPredictParam())){
+                    initTimeLine();
+                }
             });
         }
 
         //Tool
         //在jqueryid指定的输入框输入换行符（keycode == ）时，更新时间轴，并清除聚焦
-        function bindEnterRefreshTimeLineEvent(jqueryId){
+        function bindEnterInitTimeLineEvent(jqueryId){
             $(jqueryId).keyup(function (e) {
                 if(e.keyCode ==13){
-                    refreshTimeLine();
+                    //如果参数未改变则不更新时间轴
+                    if(!isEqual(predictParam,getPredictParam())){
+                        initTimeLine();
+                    }
                     $(this).blur();
                 }
             });
@@ -934,8 +1000,12 @@
         function bindClearInputBtn(){
             bindClearInputBtnEvent("#clearLocation",["#userLocation","#userAddress", "#driverLocation","#driverAddress"],function () {
                 //清空用户司机地点的同时清空marker
-                map.remove(userPoint);
-                map.remove(driverPoint);
+                if(userPoint){
+                    map.remove(userPoint);
+                }
+                if(driverPoint){
+                    map.remove(driverPoint);
+                }
                 userPoint = null;
                 driverPoint = null;
             });
@@ -974,22 +1044,22 @@
         }
 
         //bind
-        //为输入框绑定bindBlurRefreshTimeLineEvent
-        function bindBlurRefreshTimeLine(){
-            bindBlurRefreshTimeLineEvent("#interval");
-            bindBlurRefreshTimeLineEvent("#intervalNum");
-            bindBlurRefreshTimeLineEvent("#predictCertainTime");
-            bindBlurRefreshTimeLineEvent("#intervalNum");
+        //为输入框绑定bindBlurInitTimeLineEvent
+        function bindBlurInitTimeLine(){
+            bindBlurInitTimeLineEvent("#interval");
+            bindBlurInitTimeLineEvent("#intervalNum");
+            bindBlurInitTimeLineEvent("#predictCertainTime");
+            bindBlurInitTimeLineEvent("#intervalNum");
         }
 
         //bind
         //绑定刷新时间轴事件
-        function bindEnterRefreshTimeLine(){
+        function bindEnterInitTimeLine(){
 
-            bindEnterRefreshTimeLineEvent("#interval");
-            bindEnterRefreshTimeLineEvent("#intervalNum");
-            bindEnterRefreshTimeLineEvent("#predictCertainTime");
-            bindEnterRefreshTimeLineEvent("#intervalNum");
+            bindEnterInitTimeLineEvent("#interval");
+            bindEnterInitTimeLineEvent("#intervalNum");
+            bindEnterInitTimeLineEvent("#predictCertainTime");
+            bindEnterInitTimeLineEvent("#intervalNum");
         }
 
         function refreshUnitHint(){
@@ -1007,18 +1077,6 @@
         function initUnitHint(){
             var unitNmae = $('input[name="unitRadio"]:checked').val();
             $("#unitHint").text("单位：" + unitNmae);
-        }
-
-        function bindCreateBoxMethodRadioClickEvent(){
-            $("input[name='boxesCreationMethodRadio']").click(function () {
-                var method = $('input[name="unitRadio"]:checked').val();
-                if(method === "nineBoxes" && method === "roadAlong"){
-                    $("#createBoxes_nineBoxes").attr("style","");
-                    $("#createBoxes_nineBoxes").attr("style","");
-                }else if(method === "manual"){
-
-                }
-            })
         }
 
         /**
@@ -1045,15 +1103,57 @@
             }
         }
 
+        /**
+         * 为radio选项绑定对应的按钮，其他按钮隐藏
+         * @param map 映射的jqueryId radioId -- buttonId
+         * @param radioDivGroupId 包裹radios的div
+         * @param buttonDivGroupId 包裹buttons的div
+         * @param extendFunction 额外执行的函数
+         */
+        function bindRadioChangeDivShowEvent(map,radioDivGroupId,buttonDivGroupId,isSlideDown,extendFunction) {
+            jQuery.each(map,function (radioId,buttonIdArray) {
+                $(radioId).click(function () {
+                    //隐藏所有的div
+                    $(buttonDivGroupId).find("div").each(function () {
+                        $(this).hide();
+                    });
+                    $(buttonDivGroupId).find("span").each(function () {
+                        $(this).hide();
+                    });
+                    //显示map映射的buttonArray
+                    if(jQuery.isArray(buttonIdArray)){
+                        for(var i = 0; i < buttonIdArray.length; i++){
+                            var buttonId = buttonIdArray[i];
+                            $(buttonId).show();
+                        }
+                    }else{
+                        $(buttonIdArray).show();
+                    }
+
+                })
+            });
+            //额外执行的无参函数
+            if(typeof(extendFunction) != "undefined"){
+                extendFunction();
+            }
+        }
+
         //映射map
         var radio_button_mapping={
-            "#nineBoxes":"#createBoxes_nineBoxes",
-            "#roadAlong":"#createBoxes_nineBoxes",
-            "#manual":"#createBoxes_manual"
+            "#nineBoxes":["#createBoxes_nineBoxesDiv","#edit_on_offDiv","#end_editDiv","#clearBoxesDiv"],
+           // "#roadAlong":"#createBoxes_nineBoxes",
+            "#manual":["#createBoxes_manualDiv","#edit_on_offDiv","#end_editDiv","#clearBoxesDiv"]
         };
 
-        function bindRadioClickChanged(){
-            bindRadioClickChangedEvent(radio_button_mapping,"#boxesCreationMethod","#methodButtonGroup");
+        var radio_input_mapping = {
+            "#nineBoxes":["#sideLengthDiv","#sideNumDiv","#sideLengthSpan","#sideNumSpan"],
+            // "#roadAlong":"#createBoxes_nineBoxes",
+            "#manual":["#sideLengthDiv","#sideLengthSpan"]
+        }
+
+        function bindRadioChangeDivShow(){
+            bindRadioChangeDivShowEvent(radio_button_mapping,"#boxesCreationMethodGroup","#methodButtonGroup");
+            bindRadioChangeDivShowEvent(radio_input_mapping,"#boxesCreationMethodGroup","#createBoxParamGroup");
         }
 
         //init
@@ -1063,14 +1163,14 @@
             bindGroupBtnsSelected();
             bindSingleBtnSelected();
             bindKeyUpCheck();
-            bindRadioClickChanged();
-            bindBlurRefreshTimeLine();
-            bindEnterRefreshTimeLine();
+            bindRadioChangeDivShow();
+            bindBlurInitTimeLine();
+            bindEnterInitTimeLine();
             bindRadioFunction(radio_function_mapping);
             initStartDate();
             initUnitHint();
             refreshUnitHint();
-            refreshTimeLine();
+            initTimeLine();
         }
 
         //callInit
@@ -1130,7 +1230,7 @@
         margin: 0.5rem 0.5rem 0 0;
     }
 
-    #boxesCreationMethod,boxesManagement{
+    #boxesCreationMethodGroup,boxesManagement{
         float: left;
         width: 50%;
     }
@@ -1163,7 +1263,7 @@
     #timeLine{
         margin-top: 35%;
         float: left;
-        width: 65%;
+        width: 40%;
         height: 20%;
     }
 
@@ -1229,7 +1329,7 @@
 <div class="input-card" style="width: auto;">
 </div>>
 
-<div class="input-card" style="width: auto;">
+<div class="input-card" style="width: auto;">  <!-- style="height:80%;overflow:auto;width: auto;-->
     <div class="input-item">
         <span class="input-item-text">用户坐标</span>
         <input id='userLocation' name="userLocation" class="input-item-copy" type="text">
@@ -1256,26 +1356,45 @@
 
     <div id="boxesOperation" class="part" >
         <div>
-            <div id="boxesCreationMethod" class="radio">
+            <div id="boxesCreationMethodGroup" class="radio">
                 <input id="nineBoxes" name="boxesCreationMethodRadio" value="nineBoxes" type="radio" class="input-item-radio" checked>
                 <span>九宫格</span><br>
-                <input id="roadAlong" name="boxesCreationMethodRadio" value="roadAlong" type="radio" class="input-item-radio">
-                <span>道路线</span><br>
+                <!--<input id="roadAlong" name="boxesCreationMethodRadio" value="roadAlong" type="radio" class="input-item-radio">
+                <span>道路线</span><br> -->
                 <input id="manual" name="boxesCreationMethodRadio" value="manual" type="radio" class="input-item-radio">
                 <span>手动选取</span>
             </div>
             <div id="boxesManagement">
                 <div id="methodButtonGroup">
-                    <button class="btn" id="createBoxes_nineBoxes" >生成预测区</button>
-                    <button class="btn" id="createBoxes_manual" style="display:none" isSelected="false">选择预测区</button>
+                    <span id="createBoxes_nineBoxesDiv">
+                        <button class="btn" id="createBoxes_nineBoxes" >生成预测区</button>
+                    </span>
+                    <span id="createBoxes_manualDiv" style="display:none" >
+                        <button class="btn" id="createBoxes_manual"isSelected="false">选择预测区</button>
+                    </span>
+                    <!-- <span id="edit_on_offDiv">
+                        <button class="btn" id="edit_on_off" >开始编辑</button>
+                    </span> --><br>
+                    <span id="clearBoxesDiv">
+                        <button class="btn" id="clearBoxes">清空预测区</button>
+                    </span>
+                   <!-- <span id="end_editDiv">
+                        <button class="btn" id="end_edit"isSelected="false">结束编辑</button>
+                    </span> -->
                 </div>
-                <button class="btn" id="clearBoxes">清空预测区</button>
             </div>
         </div>
-        <div class="input-item">
-            <span class="input-item-text">矩形边长</span>
-            <input id='sideLength' name="address" class="input-item-copy" type="text" value="0.01" regr="^\d+(\.\d+)?$">
+        <div id="createBoxParamGroup">
+            <div class="input-item" id="sideLengthDiv">
+                <span class="input-item-text" id="sideLengthSpan">矩形边长</span>
+                <input id='sideLength' name="sideLength" class="input-item-copy" type="text" value="0.01" regr="^\d+(\.\d+)?$">
+            </div>
+            <div class="input-item" id="sideNumDiv">
+                <span class="input-item-text" id="sideNumSpan">边长数</span>
+                <input id='sideNum' name="sideNum" class="input-item-copy" type="text" value="2" regr="^\d+$">
+            </div>
         </div>
+
 
     </div>
 
@@ -1313,11 +1432,16 @@
                 <input id='interval' name="interval" class="input-item-copy" type="text" value="1" regr="^\d+(\.\d+)?$">
                 <span class="input-item-text" id="unitHint">单位：</span>
             </div>
-            <div class="input-item">
+            <div class="input-item" >
                 <span class="input-item-text">间隔段数</span>
                 <input id='intervalNum' name="intervalNum" class="input-item-copy" type="text" value="16" regr="^\d+$">
             </div>
         </form>
+
+        <div class="input-item">
+            <span class="input-item-text">预测时间段数</span>
+            <input id='predictCertainTime' name="predictCertainTime" class="input-item-copy" type="text" value="4" regr="^\d+$">
+        </div>
 
         <button class="btn" id="predict">开始预测</button>
         <span>&nbsp;&nbsp;&nbsp;</span>
@@ -1325,19 +1449,19 @@
         <span>&nbsp;&nbsp;&nbsp;</span>
         <div id="awaitHint"></div>
 
-        <div class="input-item">
-            <span class="input-item-text">预测时间段数</span>
-            <input id='predictCertainTime' name="predictCertainTime" class="input-item-copy" type="text" value="4" regr="^\d+$">
-        </div>
+        <div id="toForecastTimeProied">预测时间段：（请先获取数据）</div>
 
-        <div class="input-item">
-            <div id="showMethod" class="radio">
-                <input id="gridGraph" name="showMethodRadio" type="radio" class="input-item-radio" checked>
-                <span>格网图</span>
-                <input id="heatmapGraph" name="showMethodRadio" type="radio" class="input-item-radio">
-                <span>热力图</span>
+
+        <!--
+             <div class="input-item">
+                <div id="showMethod" class="radio">
+                    <input id="gridGraph" name="showMethodRadio" type="radio" class="input-item-radio" checked>
+                    <span>格网图</span>
+                    <input id="heatmapGraph" name="showMethodRadio" type="radio" class="input-item-radio">
+                    <span>热力图</span>
+                </div>
             </div>
-        </div>
+         -->
         <button class="btn" id="routine">生成最近路线</button>
     </div>
 </div>

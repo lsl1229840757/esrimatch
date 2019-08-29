@@ -120,7 +120,8 @@
             </div>
             <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree">
                 <a href="#${path}/html/track.jsp" class="list-group-item">车辆轨迹追踪</a>
-                <a href="#${path}/pages/distinctSearchPage" class="list-group-item">区域热点查询</a>
+                <a href="#${path}/pages/distinctSearchPage" class="list-group-item">行政区区域热点查询</a>
+                <a href="#${path}/heatmap/heatmapRoadTest" class="list-group-item">道路热点查询</a>
             </div>
         </div>
 
