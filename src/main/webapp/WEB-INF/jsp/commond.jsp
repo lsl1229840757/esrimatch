@@ -1402,7 +1402,8 @@
         <div class="input-item">
             <div id="predictMethodRadio" class="radio">
                 <input id="currentTime" name="createBoxesMethodRadio" value="currentTime" type="radio" class="input-item-radio">
-                <span>实时</span><br>
+                <span>实时</span>
+                <span>&nbsp;&nbsp;</span>
                 <input id="oldTime" name="createBoxesMethodRadio" value="oldTime" type="radio" class="input-item-radio" checked>
                 <span>预测</span>
             </div>
