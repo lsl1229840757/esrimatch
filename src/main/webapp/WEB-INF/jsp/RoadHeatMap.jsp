@@ -31,7 +31,35 @@
         width: 100%;
         height: 100%;
     }
-
+    .input-item-copy{
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        flex: 1 1 auto;
+        width: 1%;
+        margin-bottom: 0;
+        background: #fff;
+        padding: .375rem .75rem;
+        display: inline-block;
+        line-height: 1.5;
+        color: #495057;
+        vertical-align: middle;
+        border: 1px solid #ced4da;
+        -webkit-appearance: none;
+        height: calc(2.2rem + 2px);
+        font-family: inherit;
+        font-size: inherit;
+        overflow: visible;
+        text-transform: none;
+        -webkit-writing-mode: horizontal-tb !important;
+        text-rendering: auto;
+        letter-spacing: normal;
+        word-spacing: normal;
+        text-indent: 0;
+        text-shadow: none;
+        text-align: start;
+        -webkit-rtl-ordering: logical;
+        cursor: text;
+    }
 </style>
 <script>
     $(function () {
@@ -251,7 +279,7 @@
                                     });
                                     heatmap.setDataSet({
                                         data: result,
-                                        max: 100
+                                        max: 10
                                     });
                                     heatmapLayers.push(heatmap);
                                 });

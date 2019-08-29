@@ -107,19 +107,19 @@
 <body>
 <div id="sidebar">
     <span class="fa fa-taxi"></span>
-    <h2>取个名字</h2>
+    <h2>CartoUrban</h2>
+    <h2>出租车大数据可视化分析系统</h2>
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-heading downArrow">
                 <span class="glyphicon glyphicon-facetime-video"></span>
                 <span class="panel-title">
-                        <a data-toggle="collapse" data-parent=".panel-group" href="#collapseThree">
+                        <a data-toggle="collapse" data-parent=".panel-group" href="#collapseThree1">
                             可视化模块
                         </a>
                     </span>
             </div>
-            <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-
+            <div id="collapseThree1" class="collapse" role="tabpanel" aria-labelledby="headingThree">
                 <a href="#${path}/html/track.jsp" class="list-group-item">
                     <span class="fa fa-road">
                         车辆轨迹追踪
@@ -130,7 +130,7 @@
                         区域热点查询
                     </span>
                 </a>
-           <a href="#${path}/heatmap/heatmapRoadTest" class="list-group-item">道路热点查询</a>
+
             </div>
         </div>
 
@@ -138,17 +138,12 @@
             <div class="panel-heading">
                 <span class="glyphicon glyphicon-adjust"></span>
                 <span class="panel-title">
-                        <a data-toggle="collapse" data-parent=".panel-group" href="#collapseThre">
-                            分析模块
+                        <a data-toggle="collapse" data-parent=".panel-group" href="#collapseThree2">
+                            统计分析模块
                         </a>
-                    </span>
+                </span>
             </div>
-            <div id="collapseThre" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-                <a href="#${path}/commond/commondPage" class="list-group-item">
-                    <span class="fa fa-thumbs-o-up">
-                        车流量预测与上车地点推荐
-                    </span>
-                </a>
+            <div id="collapseThree2"  class="collapse" role="tabpanel" aria-labelledby="collapseThree2">
                 <a href="#${path}/pages/flowAnalyse" class="list-group-item">
                     <span class="fa fa-area-chart">
                         区域流入流出分析
@@ -162,6 +157,29 @@
                 <a href="#${path}/html/analysis.jsp" class="list-group-item">
                     <span class="fa fa-bar-chart">
                         单车统计分析
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="fa fa-users"></span>
+                <span class="panel-title">
+                        <a data-toggle="collapse" data-parent=".panel-group" href="#collapseThree3">
+                            辅助决策模块
+                        </a>
+                    </span>
+            </div>
+            <div id="collapseThree3" class="collapse" role="tabpanel" aria-labelledby="headingThree3">
+                <a href="#${path}/heatmap/heatmapRoadTest" class="list-group-item">
+                    <span class="fa fa-deviantart">
+                       街道缓冲分析与车辆调度
+                    </span>
+                </a>
+                <a href="#${path}/commond/commondPage" class="list-group-item">
+                    <span class="fa fa-thumbs-o-up">
+                        出租车密度预测与上车地点推荐
                     </span>
                 </a>
             </div>
