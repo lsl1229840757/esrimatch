@@ -289,6 +289,15 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
+    public List<Integer> searchCarIdByTime(Date time) {
+        SqlSession session = sessionFactory.openSession();
+        Map<String, String> queryMap = new HashMap<>();
+        queryMap.put("day_db", "car_"+sdf_to_day_db.format(time));
+        List<Integer>car_list = session.selectList("cn.esri.StatusNS.searchCarIdByTime",queryMap);
+        return car_list;
+    }
+
+    @Override
     public JSONObject flowAnalyse(DistinctQuery distinctQuery) {
         JSONObject jsonObject = new JSONObject();
         List<List<Status>> allData = new ArrayList<>();
