@@ -119,6 +119,7 @@
                     </span>
             </div>
             <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree">
+
                 <a href="#${path}/html/track.jsp" class="list-group-item">
                     <span class="fa fa-road">
                         车辆轨迹追踪
@@ -129,6 +130,7 @@
                         区域热点查询
                     </span>
                 </a>
+           <a href="#${path}/heatmap/heatmapRoadTest" class="list-group-item">道路热点查询</a>
             </div>
         </div>
 
