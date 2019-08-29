@@ -278,9 +278,19 @@
             var count_time = 0;
             var count_length = 0;
 
+            var count_time_1 = 0;
+            var count_time_2 = 0;
+
             Object.values(result).forEach(row => {
+                console.log(row);
                 if (row[0] > 1000)
                     return;
+                if (row[1] < 1000 * 60 * 30) {
+                    return;
+                }
+                if (row[2] > 200) {
+                    return;
+                }
                 if (row[0] > max_arr[0]) {
                     max_arr[0] = row[0];
                 }
@@ -304,15 +314,20 @@
                 }
                 if ((row[2] / row[1]) > count_time) {
                     count_time = row[2] / row[1];
+                    count_time_1 = row[1];
+                    count_time_2 = row[2];
                 }
                 if ((row[2] / row[0]) > count_length) {
                     count_length = row[2] / row[0];
                 }
             });
+            // 毫秒=>分
             max_arr[1] = max_arr[1] / 1000 / 60
             console.log(max_arr);
             console.log(min_arr);
-            console.log(count_time);
+            console.log(count_time * 1000 * 60 * 60);
+            console.log(count_time_1)
+            console.log(count_time_2)
             console.log(count_length);
 
             var option = {
@@ -347,7 +362,7 @@
                         },
                         {
                             name: '每小时载客次数',
-                            max: count_time * 1000 * 60,
+                            max: count_time * 1000 * 60 * 60,
                         },
                         {
                             name: '每公里载客次数',
