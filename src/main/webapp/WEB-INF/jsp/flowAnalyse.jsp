@@ -202,6 +202,7 @@
                             data: jsonData,
                             async: true,
                             success: function (result) {
+                                console.log(result);
                                 alert("分析完成!");
                                 var timeList = [];
                                 var inData = [];
@@ -375,7 +376,14 @@
         <div class="input-item-prepend">
             <span class="input-item-text">名称/adcode</span>
         </div>
-        <input id='district' name="distinct" type="text" value='' regr="\S" tip="名称不能为空!">
+        <input id='district' name="distinct" type="text" value='' list="greetings" regr="\S" tip="名称不能为空!">
+        <datalist id="greetings" style="display:none;">
+            <option value="海淀区">海淀区</option>
+            <option value="朝阳区">朝阳区</option>
+            <option value="通州区">通州区</option>
+            <option value="石景山区">石景山区</option>
+            <option value="丰台区">丰台区</option>
+        </datalist>
 
     </div>
     <form id="distinctSearchForm" name="distinctSearchForm" action="${path}/status/ajax_flowAnalyse" method="post">

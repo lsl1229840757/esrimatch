@@ -40,10 +40,7 @@ public class TrackController {
         return trackMapper.getById(id);
     }
 
-    /**
-     * 每天400条，共30天
-     * @return
-     */
+    @JsonResult
     @ResponseBody
     @RequestMapping("get_by_date")
     public List<Map> getByDate(Integer id, String day){

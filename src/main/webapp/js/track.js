@@ -1,7 +1,3 @@
-import {
-    request
-} from './util.js'
-
 // 开发密钥
 const API_KEY = '6172ea799c64fdc98eed0bdd4869f3fc';
 // 请求地址
@@ -33,123 +29,258 @@ var traffic = new AMap.TileLayer.Traffic({
 var map = new AMap.Map('container', {
     layers: [layer, traffic], //当只想显示标准图层时layers属性可缺省
     mapStyle: 'amap://styles/whitesmoke', //设置地图的显示样式
+    center: [116.397428, 39.90923]//地图中心点
 });
 
 // 初始化UI组件
 AMapUI.load(['ui/misc/PathSimplifier', 'lib/$'], function (PathSimplifier, $) {
-
     if (!PathSimplifier.supportCanvas) {
         alert('当前环境不支持 Canvas！');
         return;
     }
-
     var pathSimplifierIns = new PathSimplifier({
         zIndex: 100,
         //autoSetFitView:false,
         map: map, //所属的地图实例
-
         getPath: function (pathData, pathIndex) {
-
             return pathData.path;
         },
         getHoverTitle: function (pathData, pathIndex, pointIndex) {
-
             if (pointIndex >= 0) {
                 //point 
                 return pathData.name + '，点：' + pointIndex + '/' + pathData.path.length;
             }
-
             return pathData.name + '，点数量' + pathData.path.length;
         },
         renderOptions: {
+            renderAllPointsIfNumberBelow: 200,
+            pathTolerance: 1,
+            keyPointTolerance: 10,
+            keyPointStyle: {
+                fillStyle: '#ccc',
+                radius: 1,
+                lineWidth: 1
+            },
+            startPointStyle: null,
+            endPointStyle: null,
+            pathLineHoverStyle: {
+                strokeStyle: '#000000'
+            },
+            pathLineSelectedStyle: {
+                dirArrowStyle: null,
+                strokeStyle: '#000000',
+                borderStyle: 'orange',
+                borderWidth: 2
+            },
+            getPathStyle: function (pathItem, zoom) {
+                if (app.path_arr[pathItem.pathIndex].name.includes('未')) {
+                    return {
+                        pathLineStyle: {
+                            strokeStyle: '#3366cc',
+                            lineWidth: 3
+                        },
+                        pathLineSelectedStyle: {
+                            lineWidth: 4
+                        },
+                        pathNavigatorStyle: {
+                            fillStyle: '#ff9900'
+                        }
+                    }
+                } else {
+                    return {
+                        pathLineStyle: {
+                            strokeStyle: '#dc3912',
+                            lineWidth: 3
+                        },
+                        pathLineSelectedStyle: {
+                            lineWidth: 4
+                        },
+                        pathNavigatorStyle: {
+                            fillStyle: "#109618"
+                        }
+                    }
+                }
+            }
 
-            renderAllPointsIfNumberBelow: 100 //绘制路线节点，如不需要可设置为-1
         }
     });
-
     window.pathSimplifierIns = pathSimplifierIns;
-
-
 });
-
-
-// 请求车辆ID
-request(window.path+"/track/get_car_id")
-    .then(result => {
-    // 获取到了ID，保存到了result列表中
-    console.log(result);
-app.cars = result;
-request(window.path+"/track/get_by_id", {
-    id: result[222]
-})
-    .then(result => {
-    // 获取到了路径，保存到了result列表中
-    let path = [];
-for (let i = 0; i < result.length; i++) {
-    path.push(Object.values(result[i]));
-}
-console.log(path)
-loadPath(path);
-});
-});
-
 
 
 let pathCounter = 0;
 // 显示路径
 function loadPath(path) {
     //设置数据
-    pathSimplifierIns.setData([{
-        name: `路线${pathCounter}`,
-        path,
-    }]);
+    pathSimplifierIns.setData(app.path_arr);
 
-    //对第一条线路（即索引 0）创建一个巡航器
-    let navg = pathSimplifierIns.createPathNavigator(0, {
-        loop: true, //循环播放
-        speed: 10000 //巡航速度，单位千米/小时
-    });
+    function navgPause() {
+        console.log('暂停');
+        let index = navg.getPathIndex() + 1;
+        if (index >= app.path_arr.length) {
+            return;
+        }
+        navg.destroy();
+        createNavg(index);
+    }
 
-    navg.start();
+    function createNavg(index) {
+        navg = pathSimplifierIns.createPathNavigator(index, {
+            loop: false, //循环播放
+            speed: 10000, //巡航速度，单位千米/小时
+            pathNavigatorStyle: {
+                width: 24,
+                height: 24,
+                //经过路径的样式
+                pathLinePassedStyle: {
+                    lineWidth: 6,
+                    strokeStyle: 'black',
+                    dirArrowStyle: {
+                        stepSpace: 15,
+                        strokeStyle: 'red'
+                    }
+                }
+            }
+        });
+        navg.on('pause', navgPause);
+        navg.start();
+        return navg;
+    }
+    createNavg(0);
 
     pathCounter++;
 }
-
-
 
 // 初始化Vue
 var app = new Vue({
     el: '#app',
     data: {
-        msg: "点击下列数字显示轨迹",
-        cars: []
+        msg: "输入数据显示轨迹",
+        id: 1147,
+        day: '2016-08-01',
+        ids: [],
+
+        path_obj: {},
     },
     methods: {
-        getPath: car => {
-        app.msg = '获取中~';
-request(window.path+"/track/get_by_id", {
-    id: car
-})
-    .then(result => {
-    // 获取到了路径，保存到了result列表中
-    let path = [];
-for (let i = 0; i < result.length; i++) {
-    path.push(Object.values(result[i]));
-}
-console.log(path)
-loadPath(path);
-app.msg = '点击下列数字显示轨迹';
-});
-},
-},
+        getPath: async function () {
+            let path_arr = [];
+            app.msg = '获取中~';
+
+            let result = await fetch(path + "track/get_by_date?id=" + this.id + '&day=' + this.day);
+            result = await result.json();
+            let data = result.data;
+            data = processDate(data);
+            console.log(data);
+            let path_separate = [];
+            let hasCustomer = false;
+            let temp_path = [
+                [data[0].lon, data[0].lat]
+            ];
+            let temp_length = 0;
+            // 路段开始时间
+            let temp_time = data[0].receive_time;
+            for (const row of data) {
+                // 如果未载客，变为载客
+                if (!hasCustomer && row.passenger_status == 1) {
+                    hasCustomer = true;
+                    if (temp_path.length <= 1) {
+                        continue;
+                    }
+                    // 进行统计
+                    temp_time = (row.receive_time - temp_time) / (1000 * 60);
+                    path_arr.push({
+                        name: this.id + ' 未载客 ' + temp_length.toFixed(3) + ' Km ' + temp_time.toFixed(3) + ' Min',
+                        path: temp_path
+                    });
+                    // 重新计数
+                    temp_length = 0;
+                    temp_path = [];
+                    temp_path.push([row.lon, row.lat]);
+                    temp_time = row.receive_time;
+                    continue;
+                }
+                // 如果载客，变为未载客
+                if (hasCustomer && row.passenger_status == 0) {
+                    hasCustomer = false;
+                    if (temp_path.length <= 1) {
+                        continue;
+                    }
+                    // 进行统计
+                    temp_time = (row.receive_time - temp_time) / (1000 * 60);
+                    path_arr.push({
+                        name: this.id + ' 载客 ' + temp_length.toFixed(3) + ' Km ' + temp_time.toFixed(3) + ' Min ',
+                        path: temp_path
+                    });
+                    // 重新计数
+                    temp_length = 0;
+                    temp_path = [];
+                    temp_path.push([row.lon, row.lat]);
+                    temp_time = row.receive_time;
+                    continue;
+                }
+                // 状态没有变
+                // 计算距离
+                temp_path.push([row.lon, row.lat]);
+                let arr = temp_path.slice(-2);
+                let line = turf.lineString(arr);
+                let length = turf.length(line, {
+                    units: 'kilometers'
+                });
+                temp_length += length;
+            }
+            console.log(path_arr);
+            this.path_arr = path_arr;
+
+            loadPath(path);
+
+            app.msg = '输入数据显示轨迹';
+        },
+        loadCarId,
+        analysis: function () {
+            window.open('./analysis.jsp?id=' + app.id + '&day=' + app.day);
+        }
+    },
 })
 
-// 接收来自父页面的调用
-function parentCall(date, time, text) {
-    console.log("子页面接收请求!");
-    console.log(date);
-    console.log(time);
-    console.log(text);
+async function loadCarId() {
+    let result = await fetch(path + 'track/get_car_ids?id=' + app.id + '&date=' + app.day);
+    result = await result.json();
+    app.ids = result.data;
 }
-// 将函数绑定window对象上
-window.parentCall = parentCall;
+loadCarId()
+
+/**
+ * 注意：
+ * 查询时包含坐标，应该将坐标从当前坐标系转到百度坐标系
+ * 获取时包含坐标，应该将坐标从百度坐标系转换到当前坐标系
+ */
+function GCJ02ToWGS84(lon, lat) {
+    var result = gcoord.transform(
+        [lon, lat],
+        gcoord.GCJ02,
+        gcoord.WGS84,
+    );
+    return result;
+}
+/**
+ * 注意：
+ * 查询时包含坐标，应该将坐标从当前坐标系转到百度坐标系
+ * 获取时包含坐标，应该将坐标从百度坐标系转换到当前坐标系
+ */
+function WGS84ToGCJ02(lon, lat) {
+    return gcoord.transform(
+        [lon, lat],
+        gcoord.WGS84,
+        gcoord.GCJ02,
+    )
+}
+
+function processDate(data) {
+    data.forEach(row => {
+        let coor = WGS84ToGCJ02(row.lon, row.lat);
+        row.lon = coor[0];
+        row.lat = coor[1];
+    })
+    return data;
+}

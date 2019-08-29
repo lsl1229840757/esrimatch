@@ -36,7 +36,7 @@
 <body>
 
     <div id="app">
-		<input type="date" v-model='day' value="2016-08-01">
+        <input type="date" v-model='day' value="2016-08-01">
         <input type="number" v-model.number='id' placeholder="车ID" list="ids" @input='loadCarId'>
         <datalist id="ids">
             <option v-for='i in ids' :value="i">
@@ -57,8 +57,21 @@
     <script src="./turf.js"></script>
     <script src="./echart.js"></script>
     <script>
-        const URL = '${pageContext.request.contextPath }/';
-        let app = new Vue({
+        const CURRENT_URL = window.location.href;
+        let id = new URL(CURRENT_URL).searchParams.get("id");
+        let day = new URL(CURRENT_URL).searchParams.get("day");
+        if (id && day) {
+            setTimeout(() => {
+                app.id = id;
+                app.day = day;
+                app.query();
+            }, 100);
+        }
+
+
+        const URL_ = '${pageContext.request.contextPath }/';
+
+        var app = new Vue({
             el: '#app',
             data: {
                 id: 1143,
@@ -76,11 +89,15 @@
                 query: function () {
                     this.msg = '加载中，请稍等！';
                     if (this.span) {
-                        main(this.id, this.day, this.span).then(()=>{radarChart(this.id, this.day)});
+                        main(this.id, this.day, this.span).then(() => {
+                            radarChart(this.id, this.day)
+                        });
                     } else {
-                        main(this.id, this.day).then(()=>{radarChart(this.id, this.day)});
+                        main(this.id, this.day).then(() => {
+                            radarChart(this.id, this.day)
+                        });
                     }
-                    
+
                 },
                 loadCarId,
             }
@@ -89,8 +106,9 @@
         async function main(id, day, span = 15) {
             // 获取车数据
             let result = await fetch(
-                URL + 'track/get_by_date?id=' +id+'&day='+day);
+                URL_ + 'track/get_by_date?id=' + id + '&day=' + day);
             result = await result.json()
+            result = result.data;
             console.log(result);
             if (result.length == 0) {
                 app.msg = '当前数据不存在';
@@ -229,13 +247,20 @@
                 series: [{
                     name: '速度 KM/H',
                     type: 'line',
-                    itemStyle: {normal: {areaStyle: {type: 'default'}}},
+                    itemStyle: {
+                        normal: {
+                            areaStyle: {
+                                type: 'default'
+                            }
+                        }
+                    },
                     data: display_data
                 }]
             };
 
             // 使用刚指定的配置项和数据显示图表。
-            myChart.setOption(option);
+            myChart.clear();
+            myChart.setOption(option, true);
 
             app.msg = '';
         }
@@ -245,14 +270,14 @@
 
         async function radarChart(id, day) {
             let result = await fetch(
-                URL+'data/ajax_getDataByTime.action?date='+day);
+                URL_ + 'data/ajax_getDataByTime.action?date=' + day);
             result = await result.json();
             // 找到行车距离、载客时间、载客次数的最大，最小值
             let max_arr = [0, 0, 0];
             let min_arr = [0, 0, 0];
-			var count_time = 0;
-			var count_length = 0;
-			
+            var count_time = 0;
+            var count_length = 0;
+
             Object.values(result).forEach(row => {
                 if (row[0] > 1000)
                     return;
@@ -274,23 +299,23 @@
                 if (row[2] < min_arr[2]) {
                     min_arr[2] = row[2];
                 }
-				if(row[0] == 0 || row[1] == 0 || row[2] == 0){
-					return;
-				}
-				if((row[2] / row[1]) > count_time){
-					count_time = row[2] / row[1];
-				}
-				if((row[2] / row[0]) > count_length){
-					count_length = row[2] / row[0];
-				}
+                if (row[0] == 0 || row[1] == 0 || row[2] == 0) {
+                    return;
+                }
+                if ((row[2] / row[1]) > count_time) {
+                    count_time = row[2] / row[1];
+                }
+                if ((row[2] / row[0]) > count_length) {
+                    count_length = row[2] / row[0];
+                }
             });
             max_arr[1] = max_arr[1] / 1000 / 60
             console.log(max_arr);
             console.log(min_arr);
-			console.log(count_time);
-			console.log(count_length);
+            console.log(count_time);
+            console.log(count_length);
 
-            option = {
+            var option = {
                 title: {
                     text: '单车各指标'
                 },
@@ -335,20 +360,26 @@
                 series: [{
                     type: 'radar',
                     data: [{
-                            value: [app.length_total, app.customer_time, app.customer_count,
-                                (app.customer_count / app.customer_time * 60).toFixed(5),
-                                (app.customer_count / app.length_total).toFixed(5),
-                            ],
-                        },
-                    ],
-                    itemStyle: {normal: {areaStyle: {type: 'default'}}}
+                        value: [app.length_total, app.customer_time, app.customer_count,
+                            (app.customer_count / app.customer_time * 60).toFixed(5),
+                            (app.customer_count / app.length_total).toFixed(5),
+                        ],
+                    }, ],
+                    itemStyle: {
+                        normal: {
+                            areaStyle: {
+                                type: 'default'
+                            }
+                        }
+                    }
                 }]
             };
-            myChart2.setOption(option);
+            myChart2.clear();
+            myChart2.setOption(option, true);
         }
 
         async function loadCarId() {
-            let result = await fetch(URL+'track/get_car_ids?id='+app.id + '&date=' +app.day);
+            let result = await fetch(URL_ + 'track/get_car_ids?id=' + app.id + '&date=' + app.day);
             result = await result.json();
             app.ids = result.data;
         }
