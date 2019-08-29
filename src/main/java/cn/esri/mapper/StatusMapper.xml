@@ -43,4 +43,7 @@
         where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
         ,ST_GeomFromGeoJSON(#{buffers_geojson}))
     </select>
+    <select id="searchCarIdByTime" parameterType="map" resultType="int">
+        select car_id from ${day_db} where 1 = 1
+    </select>
 </mapper>

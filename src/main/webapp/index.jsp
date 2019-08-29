@@ -88,7 +88,7 @@
             width: 100%;
         }
 
-        .glyphicon-road {
+        .fa-taxi{
             height: 150px;
             width: 100%;
             font-size: 80px;
@@ -106,7 +106,7 @@
 
 <body>
 <div id="sidebar">
-    <span class="glyphicon glyphicon-road"></span>
+    <span class="fa fa-taxi"></span>
     <h2>取个名字</h2>
     <div class="panel-group">
         <div class="panel panel-default">
@@ -119,8 +119,16 @@
                     </span>
             </div>
             <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-                <a href="#${path}/html/track.jsp" class="list-group-item">车辆轨迹追踪</a>
-                <a href="#${path}/pages/distinctSearchPage" class="list-group-item">区域热点查询</a>
+                <a href="#${path}/html/track.jsp" class="list-group-item">
+                    <span class="fa fa-road">
+                        车辆轨迹追踪
+                    </span>
+                </a>
+                <a href="#${path}/pages/distinctSearchPage" class="list-group-item">
+                    <span class="fa fa-dot-circle-o">
+                        区域热点查询
+                    </span>
+                </a>
             </div>
         </div>
 
@@ -134,10 +142,26 @@
                     </span>
             </div>
             <div id="collapseThre" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-                <a href="#${path}/commond/commondPage" class="list-group-item">车流量预测与上车地点推荐</a>
-                <a href="#${path}/pages/flowAnalyse" class="list-group-item">区域流入流出分析</a>
-                <a href="#${path}/pages/overallStatistics" class="list-group-item">总体统计查询</a>
-                <a href="#${path}/html/analysis.jsp" class="list-group-item">单车统计查询</a>
+                <a href="#${path}/commond/commondPage" class="list-group-item">
+                    <span class="fa fa-thumbs-o-up">
+                        车流量预测与上车地点推荐
+                    </span>
+                </a>
+                <a href="#${path}/pages/flowAnalyse" class="list-group-item">
+                    <span class="fa fa-area-chart">
+                        区域流入流出分析
+                    </span>
+                </a>
+                <a href="#${path}/pages/overallStatistics" class="list-group-item">
+                    <span class="fa fa-pie-chart">
+                        总体统计查询
+                    </span>
+                </a>
+                <a href="#${path}/html/analysis.jsp" class="list-group-item">
+                    <span class="fa fa-bar-chart">
+                        单车统计查询
+                    </span>
+                </a>
             </div>
         </div>
 

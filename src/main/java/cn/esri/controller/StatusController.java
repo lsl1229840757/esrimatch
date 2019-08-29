@@ -9,7 +9,10 @@ import com.alibaba.druid.support.spring.stat.annotation.Stat;
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Controller
@@ -47,6 +51,31 @@ public class StatusController {
         response.getWriter().print(resultJsonArray.toString());
         return null;
     }
+
+
+    /**
+     *
+     * @param time
+     * @param response
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping("ajax_searchCarIdByTime")
+    public ModelAndView ajax_searchCarIdByTime(Date time,
+                                              HttpServletResponse response) throws Exception{
+        List<Integer> list = statusService.searchCarIdByTime(time);
+        JSONArray jsonArray = JSONArray.fromObject(list);
+        response.getWriter().println(jsonArray.toString());
+        return null;
+    }
+
+    //绑定日期解析
+    @InitBinder
+    public void bindDate(WebDataBinder binder){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        binder.registerCustomEditor(Date.class,new CustomDateEditor(simpleDateFormat, false));
+    }
+
 
     /**
      * 接收前端geoJson,并分析流入流出量

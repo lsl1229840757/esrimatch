@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ include file="taglibs.jsp"%>
+<%@ include file="timeLineLibs.jsp"%>
 <!doctype html>
 <html>
 <head>
@@ -7,6 +8,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
     <title>行政区边界查询</title>
+    <%--bootstrap滑动条--%>
+    <link href="//cdn.bootcss.com/bootstrap-slider/9.4.1/css/bootstrap-slider.css" rel="stylesheet">
+
+
+    <script src="//cdn.bootcss.com/bootstrap-slider/9.4.1/bootstrap-slider.min.js"></script>
     <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
     <%--引入时间处理js--%>
     <script src="${path}/js/dateUtil.js"></script>
@@ -21,7 +27,32 @@
     </script>
     <script>
         var heatmap;
+        var resultData;
+        var glob_max = 15; //和下面属性保持一致
         $(function(){
+            // With JQuery 使用JQuery 方式调用
+            $('#ex1').slider({
+                formatter: function (value) {
+                    return '';
+                }
+            }).on('slide', function (slideEvt) {
+                //当滚动时触发
+                // console.info(slideEvt.value);
+            }).on('change', function (e) {
+                if(heatmap !== undefined && resultData !== undefined){
+                    glob_max = parseInt($("#ex1").attr("data-slider-max"))-e.value.newValue+parseInt($("#ex1").attr("data-slider-min"))
+                    heatmap.setDataSet(
+                        {
+                            data:resultData,
+                            max:glob_max
+                        }
+                    );
+                    console.info(e.value.oldValue + '--' + e.value.newValue);
+                }
+
+            });
+
+
             //初始化地图对象，加载地图
             var map = new AMap.Map("container", {
                 resizeEnable: true,
@@ -43,6 +74,7 @@
             }
                 //行政区查询
                 district.setLevel($("#level").val());
+                $("#district").val($("#district").val().trim())
                 if($("#district").val() === ""){
                     alert("输入区域不能为空!");
                     return;
@@ -105,8 +137,10 @@
                             data:jsonData,
                             async: true,
                             success: function (result) {
+                                $("#ex1").attr("data-slider-value", 15);
                                 //geojson即为空间裁切后的multipoint
                                 console.log(result);
+                                resultData = result;
                                 // 渲染热力图
                                 if (!isSupportCanvas()) {
                                     alert('热力图仅对支持canvas的浏览器适用,您所使用的浏览器不能使用热力图功能,请换个浏览器试试~')
@@ -116,7 +150,7 @@
                                     result[i].count = 1;
                                     result[i].lng = result[i].lon;
                                 }
-                                if(heatmap != undefined){
+                                if(heatmap !== undefined){
                                     heatmap.setMap(null);
                                 }
                                 map.plugin(["AMap.Heatmap"], function () {
@@ -127,7 +161,7 @@
                                     });
                                     heatmap.setDataSet({
                                         data: result,
-                                        max: 100
+                                        max: glob_max
                                     });
                                 });
                             },
@@ -156,6 +190,16 @@
 
 
     <style>
+        .slider{
+            margin-top: 0.5%;
+            margin-left: 30%;
+
+        }
+        #ex1{
+            background: #BABABA;
+                    /*#BABABA;*/
+        }
+
         html,body,#container{
             margin:0;
             height:100%;
@@ -195,8 +239,20 @@
     </style>
 </head>
 <body>
+
 <!-- container为地图容器 -->
-<div id="container"></div>
+<div id="container">
+    <div style="position: relative;z-index: 999;height: 10%;width: 40%;top: 85%;left: 20%;background: #b6b6b6">
+        <span style="position: relative;left: 40%;">
+            <h2 style="font-size: large">
+                点密度调节
+            </h2>
+        </span>
+        <input id="ex1" data-slider-id="ex1Slider" type="text"
+                data-slider-min="5" data-slider-max="25" data-slider-step="1"
+                data-slider-value="15"/>
+    </div>
+</div>
 <div class="input-card">
     <label style='color:grey'>行政区边界查询</label>
     <div class="input-item">
@@ -214,8 +270,14 @@
         <div class="input-item-prepend">
             <span class="input-item-text" >名称/adcode</span>
         </div>
-        <input id='district' name="distinct" type="text" value=''  regr="\S" tip="名称不能为空!">
-
+        <input id='district' name="distinct" type="text" value='' list="greetings" regr="\S" tip="名称不能为空!">
+        <datalist id="greetings" style="display:none;">
+            <option value="海淀区">海淀区</option>
+            <option value="朝阳区">朝阳区</option>
+            <option value="通州区">通州区</option>
+            <option value="石景山区">石景山区</option>
+            <option value="丰台区">丰台区</option>
+        </datalist>
     </div>
     <form id="distinctSearchForm" name="distinctSearchForm" action="${path}/status/ajax_searchByDistinct" method="post">
         <div class="input-item" style="width: 105%">
