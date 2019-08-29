@@ -230,8 +230,11 @@ var app = new Vue({
                 temp_length += length;
             }
             console.log(path_arr);
+            if(path_arr.length == 0){
+                alert('故障车辆，无法显示');
+                return;
+            }
             this.path_arr = path_arr;
-
             loadPath(path);
 
             app.msg = '输入数据显示轨迹';
@@ -246,7 +249,9 @@ var app = new Vue({
 async function loadCarId() {
     let result = await fetch(path + 'track/get_car_ids?id=' + app.id + '&date=' + app.day);
     result = await result.json();
-    app.ids = result.data;
+    let arr = result.data;
+    arr = Array.from(new Set(arr));
+    app.ids = arr;
 }
 loadCarId()
 

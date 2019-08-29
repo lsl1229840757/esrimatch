@@ -208,9 +208,11 @@
                 tooltip: {
                     trigger: 'axis',
                     formatter: function (params) {
+                        console.log(params)
                         params = params[0];
                         var date = new Date(params.name);
-                        return `${date.getHours()}:${date.getMinutes()}  ${params.value[1].toFixed(2)}KM/H`;
+                        return date.getHours() + ':' + date.getMinutes() + ' ' + params.value[1].toFixed(
+                            2) + 'KM/H';
                     },
                     axisPointer: {
                         animation: false
@@ -282,7 +284,6 @@
             var count_time_2 = 0;
 
             Object.values(result).forEach(row => {
-                console.log(row);
                 if (row[0] > 1000)
                     return;
                 if (row[1] < 1000 * 60 * 30) {
@@ -323,12 +324,12 @@
             });
             // 毫秒=>分
             max_arr[1] = max_arr[1] / 1000 / 60
-            console.log(max_arr);
-            console.log(min_arr);
-            console.log(count_time * 1000 * 60 * 60);
-            console.log(count_time_1)
-            console.log(count_time_2)
-            console.log(count_length);
+            // console.log(max_arr);
+            // console.log(min_arr);
+            // console.log(count_time * 1000 * 60 * 60);
+            // console.log(count_time_1)
+            // console.log(count_time_2)
+            // console.log(count_length);
 
             var option = {
                 title: {
@@ -396,7 +397,9 @@
         async function loadCarId() {
             let result = await fetch(URL_ + 'track/get_car_ids?id=' + app.id + '&date=' + app.day);
             result = await result.json();
-            app.ids = result.data;
+            let arr = result.data;
+            arr = Array.from(new Set(arr));
+            app.ids = arr;
         }
 
         loadCarId()
