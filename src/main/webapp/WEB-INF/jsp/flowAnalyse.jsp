@@ -40,7 +40,7 @@
         }
 
         #time-period {
-            margin-bottom: 100px;
+            margin-bottom: 10%;
         }
 
         #time-start, #time-end {
