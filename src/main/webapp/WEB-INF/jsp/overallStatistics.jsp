@@ -26,13 +26,18 @@
     <script src="${path}/js/echarts.min.js"></script>
     <link rel="stylesheet" href="${path }/css/bootstrap.min.css">
     <script>
-
+        Number.prototype.toPercent = function(){
+            return (Math.round(this * 10000)/100).toFixed(2) + '%';
+        };
         $(function () {
+            var global_time = [];
+            var global_result = [];
+            $("#sub2").hide();
+
             //注册鼠标点击事件
             $("#sub").click(function () {
                 var time = $("#date").val();
-
-                console.log(time);
+                $("#sub2").show();
                 $.ajax({
                     method: "POST",
                     timeout: 5000,
@@ -44,6 +49,7 @@
                     },
                     async: true,
                     success: function (result) {
+                        global_result = result;
                         //预处理数据
                         for (var key in result) {
                             //处理距离
@@ -55,6 +61,7 @@
                                 delete result[key];
                             }
                         }
+                        global_time = time;
                         initSingleDataBar(result, time, "distance");
                         initSingleDataBar(result, time, "time");
                         initSingleDataBar(result, time, "num");
@@ -64,6 +71,7 @@
                         initSingleDataPie(result, k, time, "distance");
                         initSingleDataPie(result, k, time, "time");
                         initSingleDataPie(result, k, time, "num");
+
                     },
                     error: function (errorMessage) {
                         alert("XML request Error");
@@ -72,6 +80,15 @@
                 $(".allDataBar").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
                 $(".allDataPie").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
             });
+
+
+            $("#sub2").click(function () {
+                var time = $("#date").val();
+                initSingleDataBarPercent(global_result,Object.keys(global_result).length,global_time,"distance");
+                initSingleDataBarPercent(global_result,Object.keys(global_result).length,global_time,"time");
+                initSingleDataBarPercent(global_result,Object.keys(global_result).length,global_time,"num");
+            });
+
         });
     </script>
 
@@ -121,7 +138,7 @@
             }
             var option = {
                 title : {
-                    text: title[0]+'最大'+"的前"+k+"辆车"+title[1],
+                    text: time+title[0]+'最大'+"的前"+k+"辆车"+title[1],
                     x:'center'
                 },
                 tooltip : {
@@ -166,6 +183,115 @@
             };
             myChart.setOption(option);
         }
+
+        function initSingleDataBarPercent(result, k, time, type){
+
+            var colum = 0;//默认距离
+            var title = ["行驶距离", "(公里)"];
+            var divId = "allDistance";
+            switch (type) {
+                case "distance":
+                    colum = 0;
+                    title = ["行驶距离", "(公里)"];
+                    divId = "allDistance";
+                    break;
+                case "time":
+                    colum = 1;
+                    title = ["接客时长", "(小时)"];
+                    divId = "allTime";
+                    break;
+                case "num":
+                    colum = 2;
+                    title = ["接客次数", "(次)"];
+                    divId = "allNum";
+                    break;
+            }
+            var data = [];
+            for (var key in result){
+                data.push([key, result[key][0], result[key][1], result[key][2]]);
+            }
+
+            // 排序
+            data.sort(function (x,y) {
+                return y[colum+1]-x[colum+1]
+            });
+            var singleData = [];
+            for(var i=0;i<data.length;i++){
+                singleData.push(data[i][colum+1]);
+            }
+
+            var xLabel = [];
+            for(var i=0;i<k;i++){
+                xLabel.push((i/k).toPercent())
+            }
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById(divId));
+            // 预处理数据
+            var option = {
+                title: {
+                    text: time + '所有车辆' + title[0] + '统计' + title[1],
+                    x:'center'
+                },
+                toolbox: {
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: false
+                        },
+                        saveAsImage: {
+                            pixelRatio: 2
+                        }
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter:function (params) {
+                        console.log(params);
+                        return params[0].marker+'车辆id:'+data[params[0].dataIndex][0]+"<br>"+title[0]+":"
+                            +params[0].data+title[1];
+                    },
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    bottom: 90
+                },
+                dataZoom: [{
+                    type: 'inside'
+                }, {
+                    type: 'slider'
+                }],
+                xAxis: {
+                    data: xLabel,
+                    silent: false,
+                    splitLine: {
+                        show: false
+                    },
+                    splitArea: {
+                        show: false
+                    }
+                },
+                yAxis: {
+                    splitArea: {
+                        show: false
+                    }
+                },
+                series: [{
+                    type: 'bar',
+                    data: singleData,
+                    // Set `large` for large data amount
+                    large: true
+                }]
+
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+            // myChart.on("click",function (param) {
+            //     console.log(param);
+            // });
+        }
+
 
         //初始化总体统计的距离、时间、接客次数图标,type=distance or time or num
         function initSingleDataBar(result, time, type) {
@@ -303,6 +429,13 @@
                     class="button button--pipaluk button--inverted button--text-thick btn-reset"
                     style="margin-left: 10%;padding-bottom: 20px;">
                 查询
+            </button>
+        </div>
+        <div class="col-md-2 col-sm-2" style="margin-left: 10%;">
+            <button type="reset" name="sub2" id="sub2"
+                    class="button button--pipaluk button--inverted button--text-thick btn-reset"
+                    style="margin-left: 10%;padding-bottom: 20px;">
+                排序
             </button>
         </div>
     </div>
