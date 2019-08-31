@@ -4,7 +4,7 @@ function form2JsonString(formId,ignoreNameArray) {
     /*请求参数转json对象*/
     var jsonObj={};
     $(paramArray).each(function(){
-        if(ignoreNameArray.length === 0 || $.inArray(this.name,ignoreNameArray) < 0){
+        if(ignoreNameArray.length === 0 || $.inArray($(this).name,ignoreNameArray) < 0){
             jsonObj[this.name]=this.value;
         }
     });
@@ -19,7 +19,7 @@ function form2JsonObject(formId,ignoreNameArray) {
     /*请求参数转json对象*/
     var jsonObj={};
     $(paramArray).each(function(){
-        if(ignoreNameArray.length === 0 || $.inArray(this.name,ignoreNameArray) < 0){
+        if(ignoreNameArray.length === 0 || $.inArray($(this).name,ignoreNameArray) < 0){
             jsonObj[this.name]=this.value;
         }
     });

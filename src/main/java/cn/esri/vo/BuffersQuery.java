@@ -22,14 +22,27 @@ public class BuffersQuery implements Serializable{
 
     private String buffers_geojson;
 
+    //毫秒单位时间
+    private int interval;
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
+
     public Date getStart_time() {
         return start_time;
     }
 
     public void setStart_time(Date start_time) {
         this.start_time = start_time;
-        // 默认设置end_time间隔5min
-        setEnd_time(new Date(start_time.getTime() + 1 * 60 * 1000));
+        // 默认设置end_time间隔1min
+        if(interval != 0){
+            setEnd_time(new Date(start_time.getTime() + interval));
+        }
     }
 
     public Date getEnd_time() {

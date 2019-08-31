@@ -108,7 +108,7 @@
 <div id="sidebar">
     <span class="fa fa-taxi"></span>
     <h2>CartoUrban</h2>
-    <h2>出租车大数据可视化分析系统</h2>
+    <h2>出租车大数据可视化分析与预测平台</h2>
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-heading downArrow">

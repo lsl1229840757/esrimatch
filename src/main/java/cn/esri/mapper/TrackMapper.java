@@ -22,4 +22,7 @@ public interface TrackMapper {
             "where car_id = #{id}\n" +
             "order by receive_time")
     List<Map> getByCount(@Param("table") String table,@Param("id") Integer id);
+
+    @Select("select lon,lat,receive_time,passenger_status from ${data_table} where car_id = (select car_id from ${car_table} offset floor(random()*(select count(*)from ${car_table})) limit 1)")
+    List<Map> getByCount_random(@Param("data_table") String data_table,@Param("car_table") String car_table);
 }

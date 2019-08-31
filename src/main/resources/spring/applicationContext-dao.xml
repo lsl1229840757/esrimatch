@@ -29,6 +29,9 @@
         <!-- 这里建议配置为TRUE，防止取到的连接不可用 -->
         <property name="testOnBorrow" value="${pool.testOnBorrow}" />
         <property name="testOnReturn" value="${pool.testOnReturn}" />
+        <property name="testWhileIdle" value="true"/>
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
     </bean>
 
     <!-- 配置SqlSessionFactory -->

@@ -248,7 +248,7 @@
         // 指定图表的配置项和数据
         var option = {
             title: {
-                text: '单车各时段行车速度',
+                text: '各时段行车速度',
                 x: 'right'
             },
             tooltip: {

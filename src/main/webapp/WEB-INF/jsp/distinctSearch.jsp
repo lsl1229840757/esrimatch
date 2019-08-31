@@ -25,16 +25,20 @@
             return !!(elem.getContext && elem.getContext('2d'));
         }
     </script>
+
     <script>
         var heatmap;
         var resultData;
         var glob_max = 15; //和下面属性保持一致
+        var zoomMap = JSON.parse('{"9":"10","10":"20","11":"30","12":"60","13":"100","14":"200","15":"390","16":"750","17":"1500"}');
+        var heatmapLayers = [];
         $(function(){
             // With JQuery 使用JQuery 方式调用
             $('#ex1').slider({
                 formatter: function (value) {
                     return '';
-                }
+                },
+                id: "slider12a"
             }).on('slide', function (slideEvt) {
                 //当滚动时触发
                 // console.info(slideEvt.value);
@@ -44,9 +48,11 @@
                     heatmap.setDataSet(
                         {
                             data:resultData,
-                            max:glob_max
+                            max:glob_max,
+                            radius: parseInt($("#heatmapRadius").val()), //给定半径
                         }
                     );
+                    refreshHeatmapRadius();
                     console.info(e.value.oldValue + '--' + e.value.newValue);
                 }
 
@@ -59,6 +65,46 @@
                 center: [116.397428, 39.90923],//地图中心点
                 zoom: 10 //地图显示的缩放级别
             });
+
+           /* map.on("zoomchange",function () {
+                var zoom = map.getZoom();
+                if(zoom >= 9 && zoom <= 17){
+                    var radius = zoomMap[zoom.toString()];
+                    $("#heatmapRadius").val(radius);
+                    refreshHeatmapRadius();
+                }else if(zoom < 9){
+                    $("#heatmapRadius").val(zoomMap["9"]);
+                }else{
+                    $("#heatmapRadius").val(zoomMap["17"]);
+                }
+            });*/
+            map.on("zoomchange",function () {
+                refreshHeatmapRadius();
+            })
+            map.on('moveend',function () {
+                refreshHeatmapRadius();
+            })
+            $("#heatmapRadius").blur(function (e){
+                refreshHeatmapRadius();
+            });
+            $("#heatmapRadius").keyup(function (e){
+                if(e.keyCode ==13){
+                    refreshHeatmapRadius();
+                    $(this).blur();
+                }
+            });
+            function refreshHeatmapRadius() {
+                if(validateInput("#heatmapRadius")){
+                    heatmapLayers.forEach(function (eachLayer) {
+                        eachLayer.setOptions({
+                            radius: parseInt($("#heatmapRadius").val()), //给定半径
+                            opacity: [0, 0.8],
+                            zooms:[9,17]
+                        });
+                    })
+                }
+            }
+
             var district = null;
             var polygons=[];
             function search() {
@@ -150,20 +196,19 @@
                                     result[i].count = 1;
                                     result[i].lng = result[i].lon;
                                 }
-                                if(heatmap !== undefined){
-                                    heatmap.setMap(null);
-                                }
-                                map.plugin(["AMap.Heatmap"], function () {
-                                    //初始化heatmap对象
-                                    heatmap = new AMap.Heatmap(map, {
-                                        radius: 25, //给定半径
-                                        opacity: [0, 0.8]
-                                    });
-                                    heatmap.setDataSet({
-                                        data: result,
-                                        max: glob_max
-                                    });
+                                var heatmap = new AMap.Heatmap(map, {
+                                    opacity: [0, 0.8],
+                                    radius:parseInt($("#heatmapRadius").val())
                                 });
+                                for (var i=0;i<result.length;i++){
+                                    result[i].count = 1;
+                                    result[i].lng = result[i].lon;
+                                }
+                                heatmap.setDataSet({
+                                    data: result,
+                                    max: 10
+                                });
+                                heatmapLayers.push(heatmap);
                             },
                             error: function (errorMessage) {
                                 alert("XML request Error");
@@ -172,18 +217,29 @@
                     }
                 });
             }
-                $("#draw").click(search);
-                //document.getElementById('draw').onclick = drawBounds;
-                $("#district").keydown(function (e) {
-                    if (e.keyCode === 13) {
-                        search();
-                        return false;
-                    }
-                    return true;
+
+            AMap.plugin(["AMap.Heatmap"], function () {
+                //初始化heatmap对象
+                heatmap = new AMap.Heatmap(map, {
+                    radius: parseInt($("#heatmapRadius").val()), //给定半径
+                    opacity: [0, 0.8],
+                    zooms:[9,17]
                 });
-                // 初始化日期
-                // $("#start_time").attr("value", getNowTime());
-                $("#start_time").attr("value", "2016-08-01T18:00");
+            });
+            $("#draw").click(search);
+            //document.getElementById('draw').onclick = drawBounds;
+            $("#district").keydown(function (e) {
+                if (e.keyCode === 13) {
+                    search();
+                    return false;
+                }
+                return true;
+            });
+            // 初始化日期
+            // $("#start_time").attr("value", getNowTime());
+            $("#start_time").attr("value", "2016-08-01T18:00");
+
+
         });
     </script>
 
@@ -195,6 +251,20 @@
             margin-left: 30%;
 
         }
+
+
+        #slider12a .slider-track-high{
+            background: #b3afb1;
+        }
+
+        #slider12a .slider-selection{
+            background: rgba(36, 34, 35, 0.88);
+        }
+
+        #slider12a .slider-handle{
+            background: #0f0d0d;
+        }
+
         #ex1{
             background: #BABABA;
                     /*#BABABA;*/
@@ -242,9 +312,9 @@
 
 <!-- container为地图容器 -->
 <div id="container">
-    <div style="position: relative;z-index: 999;height: 10%;width: 40%;top: 85%;left: 20%;background: #b6b6b6">
+    <div style="position: relative;z-index: 999;height: 10%;width: 40%;top: 85%;left: 20%;background: transparent">
         <span style="position: relative;left: 40%;">
-            <h2 style="font-size: large">
+            <h2 style="font-size: large; margin-left:5%">
                 点密度调节
             </h2>
         </span>
@@ -289,6 +359,10 @@
             <input id="district_geojson" name="district_geojson" type="hidden">
         </div>
     </form>
+    <div class="input-item" style="width: 105%">
+        <span class="input-item-text" >渲染半径</span>
+        <input id="heatmapRadius" name="heatmapRadius" type="text" value="25" regr="^\d+$">
+    </div>
     <input id="draw" type="button" class="btn" value="查询" />
 </div>
 <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=69c9fa525cc6a9fc45b7c95409172398&plugin=AMap.DistrictSearch"></script>

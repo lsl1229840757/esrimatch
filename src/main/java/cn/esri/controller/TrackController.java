@@ -44,8 +44,13 @@ public class TrackController {
     @ResponseBody
     @RequestMapping("get_by_date")
     public List<Map> getByDate(Integer id, String day){
-        day = "data_" + day.replaceAll("-","_");
-        return trackMapper.getByCount(day,id);
+        String data_table = "data_" + day.replaceAll("-","_");
+        String car_table = "car_" + day.replaceAll("-","_");
+        if(data_table.equals("data_2016_08_01")){
+            return trackMapper.getByCount(data_table,id);
+        }else{
+            return trackMapper.getByCount_random(data_table,car_table);
+        }
     }
 
 

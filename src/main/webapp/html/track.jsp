@@ -5,7 +5,7 @@
 <%@ taglib prefix="itcast" uri="http://itcast.cn/common/"%>
 <!DOCTYPE html>
 <html lang="en">
-
+<c:set var="path" value="${pageContext.request.contextPath }"/>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +21,8 @@
     <script src="//webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
     <!-- Vue -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
+    <link rel="stylesheet" href="${path }/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${path }/css/buttons.css">
     <style>
         html,
         body {
@@ -56,13 +57,23 @@
                     </a>
                 </span>
             </div>
-            <input type="date" v-model='day'>
-            <input type="number" v-model.number='id' placeholder="车ID" list="ids" @input='loadCarId'>
-            <datalist id="ids">
-                <option v-for='i in ids' :value="i">
-            </datalist>
-            <button @click='getPath'>显示路径</button>
-            <button @click='analysis'>跳转单车分析</button>
+            <div class="row">
+                <div class="col-md-3">
+                <input type="date" v-model='day' class="form-control input-lg my-form" style="margin-top: 8%;">
+                </div>
+                <div class="col-md-3">
+                <input type="number" v-model.number='id' placeholder="车ID" list="ids" @input='loadCarId' class="form-control input-lg my-form" style="margin-top: 8%;">
+                </div>
+                <datalist id="ids">
+                    <option v-for='i in ids' :value="i">
+                </datalist>
+                <div class="col-md-2" style="margin-right: 4%;">
+                <button @click='getPath' class="button button--pipaluk button--inverted button--text-thick btn-reset" >显示路径</button>
+                </div>
+                <div class="col-md-2">
+                <button @click='analysis' class="button button--pipaluk button--inverted button--text-thick btn-reset">跳转单车分析</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>

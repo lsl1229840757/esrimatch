@@ -209,8 +209,8 @@
                                 var outData = [];
                                 for (var key in result) {
                                     timeList.push(key);
-                                    inData.push(result[key]["in"].length);
-                                    outData.push(result[key]["out"].length);
+                                    inData.push(result[key]["in"].length*10);
+                                    outData.push(result[key]["out"].length*10);
                                 }
                                 // 绘制echarts图表
                                 var myChart = echarts.init(document.getElementById("chart"));
