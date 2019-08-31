@@ -202,7 +202,6 @@
             }
 
             operateStatus = operateName;
-            console.log('已绑定' + operateName);
         }
 
 
@@ -543,7 +542,6 @@
             //预测模式
             if(validateForm("#predictForm")){
                 predictParam = getPredictParam();
-                console.log(predictParam);
                 if($("#geometry_geojson").val()!=""){
                     $("#awaitHint").text("数据获取中,请稍后");
                     $.ajax({
@@ -662,15 +660,12 @@
                                                         point_WGS84ToGCJ02(result[roadName].nearestPoint.coordinates);
                                                     roadUnit.roadGeo = result[roadName].roadGeometry;
                                                     roadUnit.success = result[roadName].success;
-                                                    console.log(roadName + '查询成功');
                                                     //计算异步调用flag
                                                     callbackFlag += 2;
                                                 }else{
                                                     roadUnit.success = result[roadName].success;
-                                                    console.log(roadName + '查询失败');
                                                 }
                                             }
-                                            console.log(calcuVo);
                                             calculate(callback);
                                         },
                                         error: function (errorMessage) {
@@ -773,7 +768,6 @@
                                 roadUnit.driverRoutineTime = allTime;
                             }else{
                                 roadUnit.driverRoutineTime = AMap.GeometryUtil.distance(startLngLat,endLngLat)/8;
-                                console.log(roadUnit.roadName + "司机路径规划失败");
                             }
                             callbackNum++;
                             if(callbackNum >= callbackFlag){
@@ -792,7 +786,6 @@
                                 roadUnit.userRoutineTime = allTime;
                             }else{
                                 roadUnit.userRoutineTime = roadUnit.userDistance*1000/0.7;
-                                console.log(roadUnit.roadName + "行人路径规划失败");
                             }
                             callbackNum++;
                             if(callbackNum >= callbackFlag){

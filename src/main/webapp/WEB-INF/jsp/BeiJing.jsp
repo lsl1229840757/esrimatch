@@ -99,7 +99,6 @@
 
             $.ajaxSettings.async = false;
             $.get('${visit_path}/data/test.json', function (data) {
-                console.log(data)
                 var hStep = 300 / (data.length - 1);
                 var busLines = [].concat.apply([], data.map(function (busLine, idx) {
                     var prevPt;
@@ -191,12 +190,9 @@
                 if (type === 'marker') {
                     layer.bindPopup('A popup!');
                 }
-                console.log(Object.keys(e))
-                console.log(e.sourceTarget)
                 editableLayers.addLayer(layer);
             });
             map.on("click", function (e) {
-                console.log(e)
             });
 
             function initedLayer(){

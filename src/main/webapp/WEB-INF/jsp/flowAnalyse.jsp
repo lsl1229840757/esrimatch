@@ -110,7 +110,6 @@
                 //mask.fadeOut();
                 isShow = false;
                 sidebar.css('right', '-600px');
-                console.log("mask");
             }
 
 
@@ -202,7 +201,6 @@
                             data: jsonData,
                             async: true,
                             success: function (result) {
-                                console.log(result);
                                 alert("分析完成!");
                                 var timeList = [];
                                 var inData = [];

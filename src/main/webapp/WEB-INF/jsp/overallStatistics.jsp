@@ -75,6 +75,7 @@
                     },
                     error: function (errorMessage) {
                         alert("XML request Error");
+                        console.log(errorMessage);
                     }
                 });
                 $(".allDataBar").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
@@ -245,7 +246,6 @@
                 tooltip: {
                     trigger: 'axis',
                     formatter:function (params) {
-                        console.log(params);
                         return params[0].marker+'车辆id:'+data[params[0].dataIndex][0]+"<br>"+title[0]+":"
                             +params[0].data+title[1];
                     },

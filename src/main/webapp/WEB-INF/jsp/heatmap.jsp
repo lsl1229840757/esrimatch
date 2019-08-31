@@ -95,7 +95,6 @@
 
                 //添加事件
                 AMap.event.addListener( mouseTool,'draw',function(e){
-                    console.log(e.obj.getPath());
                     var queryGeometry = e.obj.getPath();
                     var feature = new AMap.Polygon({
                         strokeWeight: 1,
@@ -111,7 +110,6 @@
             //添加query
             $("#query").click(function(){
                 if(queryFeatures.length){
-                    console.log(queryFeatures);
                     var json = getJsonFromFeatures(queryFeatures);
                     getGeometryHeatmap(json);
                 }else{
@@ -149,7 +147,6 @@
                     }
                 });
                 geojson.addOverlays(features);
-                console.log(JSON.stringify( geojson.toGeoJSON()));
                 $("#district_geojson").val(JSON.stringify(geojson.toGeoJSON()));
                 if(validateForm("#distinctSearchForm")){
                     return form2JsonString("#distinctSearchForm");
@@ -169,7 +166,6 @@
                         //保存查询结果
                         queryResult = result;
                         //geojson即为空间裁切后的multipoint
-                        console.log(result);
                         // 渲染热力图
                         for (var i=0;i<result.length;i++){
                             result[i].count = 1;

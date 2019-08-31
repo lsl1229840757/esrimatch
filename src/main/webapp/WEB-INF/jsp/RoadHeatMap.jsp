@@ -188,7 +188,6 @@
                         }
                     );
                     refreshHeatmapRadius();
-                    console.info(e.value.oldValue + '--' + e.value.newValue);
                 }
             }
 
@@ -534,7 +533,6 @@
                             async: true,
                             success: function (result) {
                                 //geojson即为空间裁切后的multipoint
-                                console.log(result);
                                 resultData[resultData.length] = result;
                                 var heatmap = new AMap.Heatmap(map, {
                                     opacity: [0, 0.8],

@@ -53,7 +53,6 @@
                         }
                     );
                     refreshHeatmapRadius();
-                    console.info(e.value.oldValue + '--' + e.value.newValue);
                 }
 
             });
@@ -185,7 +184,6 @@
                             success: function (result) {
                                 $("#ex1").attr("data-slider-value", 15);
                                 //geojson即为空间裁切后的multipoint
-                                console.log(result);
                                 resultData = result;
                                 // 渲染热力图
                                 if (!isSupportCanvas()) {
