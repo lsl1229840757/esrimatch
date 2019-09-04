@@ -1,4 +1,4 @@
-import cn.esri.service.IserverService;
+import cn.esri.service.ServerService;
 import cn.esri.utils.IserverUtil;
 import cn.esri.vo.Point;
 import net.sf.json.JSONObject;
@@ -8,13 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:spring/applicationContext-*.xml")
 public class IserverResourceTest {
 
-    @Autowired
-    private IserverService iserverService;
+    @Resource(name = "iserverServiceImpl")
+    private ServerService iserverService;
     @Test
     public void testGetResourceJson() {
         JSONObject jsonObject = IserverUtil.queryRoadByName("小屯路");

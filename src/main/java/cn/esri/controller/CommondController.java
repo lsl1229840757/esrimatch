@@ -1,7 +1,7 @@
 package cn.esri.controller;
 
 import cn.esri.service.ForecastingService;
-import cn.esri.service.IserverService;
+import cn.esri.service.ServerService;
 import cn.esri.service.StatusService;
 import cn.esri.vo.GeometryNearestPointQuery;
 import cn.esri.vo.PredictQuery;
@@ -25,8 +25,8 @@ public class CommondController {
     @Resource
     private StatusService statusService;
 
-    @Resource
-    private IserverService iserverService;
+    @Resource(name = "iserverServiceImpl")
+    private ServerService iserverService;
 
 
     @RequestMapping("commondPage")
