@@ -88,7 +88,7 @@
             width: 100%;
         }
 
-        .fa-taxi{
+        .fa-car{
             height: 150px;
             width: 100%;
             font-size: 80px;
@@ -106,9 +106,8 @@
 
 <body>
 <div id="sidebar">
-    <span class="fa fa-taxi"></span>
-    <h2>CartoUrban</h2>
-    <h2>出租车大数据可视化分析与预测平台</h2>
+    <span class="fa fa-car"></span>
+    <h2 style="margin-bottom: 50px">CartoUrban</h2>
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-heading downArrow">
