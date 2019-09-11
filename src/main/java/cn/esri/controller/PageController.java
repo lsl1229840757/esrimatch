@@ -1,6 +1,7 @@
 package cn.esri.controller;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -21,5 +22,10 @@ public class PageController {
     @RequestMapping("flowAnalyse")
     public ModelAndView flowAnalysePage(){
         return new ModelAndView("flowAnalyse");
+    }
+
+    @RequestMapping("streamInAndOut")
+    public ModelAndView streamInAndOut(){
+        return new ModelAndView("streamInAndOut");
     }
 }

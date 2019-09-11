@@ -15,6 +15,8 @@ public interface StatusService {
 
     JSONObject flowAnalyse(DistinctQuery distinctQuery);
 
+    JSONObject streamInAndOut(DistinctQuery distinctQuery);
+
     List<String> createBuffers(PolylinesQuery polylinesQuery);
 
     List<Status> searchByBuffers(BuffersQuery buffersQuery);

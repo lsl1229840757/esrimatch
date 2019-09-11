@@ -37,4 +37,29 @@ public class Taxi {
 
     public Taxi() {
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Taxi other = (Taxi) obj;
+        if (latitude != other.latitude)
+            return false;
+        if (logitude != other.logitude)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (int)latitude+(int)logitude;
+        return result;
+    }
 }

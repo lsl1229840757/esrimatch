@@ -120,6 +120,11 @@
                     </span>
             </div>
             <div id="collapseThree1" class="collapse" role="tabpanel" aria-labelledby="headingThree">
+                <a href="#${path}/pages/streamInAndOut" class="list-group-item">
+                    <span class="fa fa-circle-o-notch">
+                        区域流入流出
+                    </span>
+                </a>
                 <a href="#${path}/html/track.jsp" class="list-group-item">
                     <span class="fa fa-road">
                         车辆轨迹追踪

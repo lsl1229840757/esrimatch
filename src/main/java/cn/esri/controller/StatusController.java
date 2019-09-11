@@ -90,4 +90,17 @@ public class StatusController {
         return null;
     }
 
+    /**
+     * 接收前端geoJson,并分析流入流出量
+     * @param distinct 接收前端geoJson
+     * @return 流入流出的json{test:{in:[],out:[]},......}
+     */
+    @RequestMapping("ajax_streamInAndOut")
+    public ModelAndView ajax_streamInAndOut(@RequestBody DistinctQuery distinct,
+                                         HttpServletResponse response) throws IOException {
+        JSONObject result = statusService.streamInAndOut(distinct);
+        response.getWriter().println(result);
+        return null;
+    }
+
 }
