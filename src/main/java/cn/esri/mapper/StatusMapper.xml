@@ -16,8 +16,8 @@
 
     <select id="searchByDistinct" parameterType="map" resultMap="StatusResultMap">
         select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
-        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
-        ,ST_GeomFromGeoJSON(#{district_geojson}))
+        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(point
+        ,ST_SetSRID(ST_GeomFromGeoJSON(#{buffers_geojson}),4326))
         <!--select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data-->
         <!--where receive_time = #{start_time} and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')-->
         <!--,ST_GeomFromGeoJSON(#{district_geojson}))-->
@@ -35,13 +35,13 @@
 
     <select id="searchByBuffers" parameterType="map" resultMap="StatusResultMap">
         select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
-        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
-        ,ST_GeomFromGeoJSON(#{buffers_geojson}))
+        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(point
+        ,ST_SetSRID(ST_GeomFromGeoJSON(#{buffers_geojson}),4326))
     </select>
     <select id="searchCountByGeometry" parameterType="map" resultType="int">
         select count(*) from ${day_db}
-        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')
-        ,ST_GeomFromGeoJSON(#{buffers_geojson}))
+        where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(point
+        ,ST_SetSRID(ST_GeomFromGeoJSON(#{buffers_geojson}),4326))
     </select>
     <select id="searchCarIdByTime" parameterType="map" resultType="int">
         select car_id from ${day_db} where 1 = 1

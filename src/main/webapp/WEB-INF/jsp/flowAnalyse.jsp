@@ -90,20 +90,19 @@
             var backButton = $('.back-to-top'); //选择返回顶部
             var sidebar_trigger = $('#sidebar_trigger');//选择侧栏触发器
 
-            function showSidebar() {  //显示侧栏     
-                //mask.fadeIn();  //显示mask
-                isShow = true;
-                sidebar.animate({'right': 0});  //调整侧栏css     
-                //sidebar.css('right',0);//两种写法都ok         
-            }
-
-
             function tarClick() {
                 if (isShow) {
                     hideSideBar();
                 } else {
                     showSidebar();
                 }
+            }
+
+            function showSidebar() {  //显示侧栏     
+                //mask.fadeIn();  //显示mask
+                isShow = true;
+                sidebar.animate({'right': 0});  //调整侧栏css     
+                //sidebar.css('right',0);//两种写法都ok         
             }
 
             function hideSideBar() {  //隐藏mask
