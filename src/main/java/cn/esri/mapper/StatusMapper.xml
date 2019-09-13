@@ -17,11 +17,9 @@
     <select id="searchByDistinct" parameterType="map" resultMap="StatusResultMap">
         select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
         where (receive_time between #{start_time} and #{end_time}) and ST_Intersects(point
-        ,ST_SetSRID(ST_GeomFromGeoJSON(#{buffers_geojson}),4326))
-        <!--select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from processed_data-->
-        <!--where receive_time = #{start_time} and ST_Intersects(ST_GeomFromText('point('||lon||' '||lat||')')-->
-        <!--,ST_GeomFromGeoJSON(#{district_geojson}))-->
+        ,ST_SetSRID(ST_GeomFromGeoJSON(#{district_geojson}),4326))
     </select>
+
     <select id="selectTest" parameterType="DistinctQuery" resultMap="StatusResultMap">
         select id,car_id,lon,lat,speed,azimuth,passenger_status,receive_time from ${day_db}
         where receive_time = #{start_time}
