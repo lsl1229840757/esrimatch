@@ -31,5 +31,5 @@ public interface StatusService {
 
     List<Integer> searchCarIdByTime(Date time);
 
-
+    JSONObject predictCarNum(DistinctQuery distinct);
 }

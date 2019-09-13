@@ -182,6 +182,8 @@
                             data:jsonData,
                             async: true,
                             success: function (result) {
+                                if(heatmap!=null)
+                                    heatmap.setMap(null);
                                 $("#ex1").attr("data-slider-value", 15);
                                 //geojson即为空间裁切后的multipoint
                                 resultData = result;
@@ -194,7 +196,7 @@
                                     result[i].count = 1;
                                     result[i].lng = result[i].lon;
                                 }
-                                var heatmap = new AMap.Heatmap(map, {
+                                heatmap = new AMap.Heatmap(map, {
                                     opacity: [0, 0.8],
                                     radius:parseInt($("#heatmapRadius").val())
                                 });

@@ -252,14 +252,12 @@
                                         {
                                             name: '流入车流量',
                                             type: 'line',
-                                            stack: '总量',
                                             areaStyle: {},
                                             data: inData
                                         },
                                         {
                                             name: '流出车流量',
                                             type: 'line',
-                                            stack: '总量',
                                             areaStyle: {},
                                             data: outData
                                         }

@@ -56,5 +56,4 @@ public class HeatmapController {
         return null;
     }
 
-
 }

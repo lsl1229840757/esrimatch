@@ -28,4 +28,9 @@ public class PageController {
     public ModelAndView streamInAndOut(){
         return new ModelAndView("streamInAndOut");
     }
+
+    @RequestMapping("modelPredict")
+    public ModelAndView modelPredict(){
+        return new ModelAndView("modelPredict");
+    }
 }
