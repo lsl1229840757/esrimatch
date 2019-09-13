@@ -57,7 +57,7 @@
                             //处理时间转为小时
                             result[key][1] = parseFloat((result[key][1] / 1000 / 3600).toFixed(2));
                             // 过滤数据
-                            if (result[key][0] > 1000) {
+                            if (result[key][0] > 1000 || result[key][2]>100) {
                                 delete result[key];
                             }
                         }

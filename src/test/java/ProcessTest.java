@@ -18,9 +18,8 @@ public class ProcessTest {
     @Test
     public void processTest() throws Exception{
        boolean flag = dataService.processDataByTime(new SimpleDateFormat("yyyy-MM-dd")
-               .parse("2016-08-02"));
+               .parse("2016-08-07"));
        System.out.println(flag);
      }
-
 
 }
