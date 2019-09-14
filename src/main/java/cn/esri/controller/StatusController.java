@@ -103,4 +103,13 @@ public class StatusController {
         return null;
     }
 
+    @RequestMapping("ajax_modelPredict")
+    public ModelAndView ajax_modelPredict(@RequestBody DistinctQuery distinct,
+                                            HttpServletResponse response) throws IOException {
+        JSONObject result = statusService.predictCarNum(distinct);
+        System.out.println("***********************************:"+result);
+        response.getWriter().println(result);
+        return null;
+    }
+
 }

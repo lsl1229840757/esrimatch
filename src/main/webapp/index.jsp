@@ -121,7 +121,7 @@
             <div id="collapseThree1" class="collapse" role="tabpanel" aria-labelledby="headingThree">
                 <a href="#${path}/pages/streamInAndOut" class="list-group-item">
                     <span class="fa fa-circle-o-notch">
-                        区域流入流出
+                        区域流入流出热力图
                     </span>
                 </a>
                 <a href="#${path}/html/track.jsp" class="list-group-item">
@@ -131,7 +131,7 @@
                 </a>
                 <a href="#${path}/pages/distinctSearchPage" class="list-group-item">
                     <span class="fa fa-dot-circle-o">
-                        区域热点查询
+                        区域车辆热力图
                     </span>
                 </a>
 
@@ -161,6 +161,11 @@
                 <a href="#${path}/html/analysis.jsp" class="list-group-item">
                     <span class="fa fa-bar-chart">
                         单车统计分析
+                    </span>
+                </a>
+                <a href="#${path}/pages/modelPredict" class="list-group-item">
+                    <span class="fa fa-line-chart">
+                        区域出租车数目预测分析
                     </span>
                 </a>
             </div>

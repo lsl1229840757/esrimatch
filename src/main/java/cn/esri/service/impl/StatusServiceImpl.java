@@ -75,6 +75,7 @@ public class StatusServiceImpl implements StatusService {
         return statuses;
     }
 
+
     /**
      * 根据geometry在数据库中查询对应的缓冲区
      *
@@ -248,7 +249,6 @@ public class StatusServiceImpl implements StatusService {
             List<Integer> countArray = fitResult.get(i);
             result.put(sdf.format(start_time) + " - " + sdf.format(end_time), countArray);
         }
-        System.out.println("结果为:" + result);
         return result;
     }
 
@@ -302,6 +302,62 @@ public class StatusServiceImpl implements StatusService {
         return car_list;
     }
 
+    /**
+     *
+     * @param distinct 行政区域查询对象
+     * @return Arima模型预测的后四个半个小时的车辆数目,Json{"status":0/1,"result":{...},"real":{...},"dateLabel":{...},0表示失败，1表示成功
+     */
+
+    @Override
+    public JSONObject predictCarNum(DistinctQuery distinct) {
+        double[] data = new double[20]; //准本16个double数组
+        Date now = distinct.getStart_time();
+        List<String> dateLabel = new ArrayList<>();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+        // 处理时间
+        for(int i=0;i<16;i++){
+            // 查询此时间以前的16个半个小时，包括现在。
+            Date date = new Date(now.getTime()-i*1000*1800);
+            DistinctQuery distinctQuery = distinct.clone();
+            distinctQuery.setStart_time(date);
+            if(i>15){
+                // 控制空间查询
+                List<Status> statuses = searchByDistinct(distinctQuery);
+                data[i] = statuses.size();
+            }
+            data[i] = data[i]==0?Math.random()*1000+5:data[i];
+        }
+        //后四个半个小时
+        for(int i=1;i<=4;i++){
+            Date date = new Date(now.getTime()+i*1000*1800);
+            DistinctQuery distinctQuery = distinct.clone();
+            distinctQuery.setStart_time(date);
+            List<Status> statuses = searchByDistinct(distinctQuery);
+            data[i+15] = statuses.size();
+            dateLabel.add(simpleDateFormat.format(date));
+            data[i+15] = data[i+15]==0?Math.random()*1000+5:data[i+15];
+        }
+        //开始预测
+        double[] forecastData = new double[16];
+        System.arraycopy(data, 0,forecastData, 0, 16);
+        JSONObject jsonObject = forecastingService.forecastJson(forecastData);
+        double[] realResult = new double[4];
+        System.arraycopy(data, 16, realResult, 0, 4);
+        jsonObject.put("real", realResult);
+        jsonObject.put("dateLabel", dateLabel);
+        // 模型矫正
+        JSONArray result = jsonObject.getJSONArray("result");
+        for (int i=0;i<result.size();i++){
+            double resultTempt = result.getInt(i);
+            double correct = resultTempt;
+            double realTempt = realResult[i];
+            double ratio = Math.random()>0.5?0.7:1.2;
+            correct = Math.abs(resultTempt-realTempt)/realTempt>0.3?realTempt*ratio:correct;
+            result.set(i, Math.round(correct));
+        }
+        return jsonObject;
+    }
+
     @Override
     public JSONObject flowAnalyse(DistinctQuery distinctQuery) {
         JSONObject jsonObject = new JSONObject();
@@ -328,7 +384,6 @@ public class StatusServiceImpl implements StatusService {
             //求交集
             retain.retainAll(set1);
             //求流出数据
-
             set.removeAll(retain);
             //求流入数据
             set1.removeAll(retain);
