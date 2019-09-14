@@ -156,7 +156,7 @@ var app = new Vue({
     el: '#app',
     data: {
         msg: "输入数据显示轨迹",
-        id: 1147,
+        id: 20274,
         day: '2016-08-01',
         ids: [],
 

@@ -12,7 +12,8 @@ public interface TrackMapper {
     List<Integer> getCarId(Integer count);
 
 //    @Select("select distinct car_id from ${date} where car_id::varchar(255) like '%'||#{id}||'%' limit 10")
-    @Select("select car_id from ${date} where car_id::varchar(255) like '%'||#{id}||'%' limit 15")
+//    @Select("select car_id from ${date} where car_id::varchar(255) like '%'||#{id}||'%' limit 15")\
+        @Select("select distinct car_id from ${date} where car_id::varchar(255) like '%'||#{id}||'%' limit 15")
     List<Integer> getCarIds(@Param("id") String id,@Param("date") String date);
 
     @Select("select lon,lat,receive_time from processed_data where car_id = #{id} order by receive_time")

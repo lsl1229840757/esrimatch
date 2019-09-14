@@ -84,7 +84,6 @@
         var heatmap;
         $(function () {
             var isShow = false;
-            'use strict';
             var sidebar = $('#sidebar'); //选择侧栏
             var mask = $(".mask"); //选择遮罩
             var backButton = $('.back-to-top'); //选择返回顶部

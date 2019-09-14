@@ -12,6 +12,9 @@
 <script src="${path}/html/turf.js"></script>
 <script src="${path}/js/coordinate-transformation.js"></script>
 <script src="${path}/js/moment.js"></script>
+<link rel="stylesheet" href="${path}/css/sidebar.css"/>
+<script src="${path}/js/echarts.min.js"></script>
+<script src="${path}/js/lodash.js"></script>
 <html>
 <head>
     <title>RoadHeatMap</title>
@@ -96,37 +99,67 @@
 <script>
     $(function () {
 
-        var geocoder = null;
-        var roadSearcher = null;
+        /**
+         * 每个road对象代表一个道路和自己的缓冲区，同一道路不同缓冲区视为不同road对象
+         * 通过是深拷贝roadOri对象获取
+         * 注意：这里的goemetry的坐标系为CJ02坐标系，如果想传给后台需要坐标变换！！！
+         */
+        function Road(){
+            this.roadGeometry = null;  //为multiPolyline类型
+            this.bufferGeometry = null;        //为multiPolygon类型
+            this.multiStatusPoints = null;    //为multiPoint类型,用于热力图，为[]而不是高德geometry对象
+            this.roadAttr = null;
+            this.heatmap = null;  //高德的heatmap只支持set而没有move，因此为每个road都提供一个heatmap
+        }
+
+        /**
+         * 用于储存与计算道路相关的信息
+         */
+        function RoadAttr(){
+            this.roadId = -1;
+            this.name = null;
+            this.length = -1;
+            this.area = -1;
+            this.num = -1;
+            this.density = -1;
+            this.hasBuffer = false;
+            this.index = -1;
+            this.radius = -1;
+            this.updateDensity = function () {
+                if(this.area > 0 && this.num >= 0){
+                    this.density = this.num/this.area;
+                }
+            }
+        }
+
+
+
+        var colar = ['red', 'blue', 'black', 'green'];  //temp TODO
+        var zoomMap = JSON.parse('{"9":"10","10":"20","11":"30","12":"60","13":"100","14":"200","15":"390","16":"750","17":"1500"}');
+        var glob_max = 25;
+
+        var autoFlag = false;
+        var isSelected = false;
 
         var lnglat = null; //地理坐标
-        var road = null;    //距离lnglat最近的道路对象
         var ac = null;  //addressComponent
         var roadId = null;
-        var roadAddress = null;   //address String
-        var roadPolylines = [];
-        var roadPolylinesGeojsonStr = null;
-        var colar = ['red', 'blue', 'black', 'green'];  //temp TODO
-        var buffersJson = null;
-        var heatmapLayers = [];
-        var currentBufferIndex = 0;
-        var zoomMap = JSON.parse('{"9":"10","10":"20","11":"30","12":"60","13":"100","14":"200","15":"390","16":"750","17":"1500"}');
-        var autoFlag = false;
+        var roadOri = null;
+        var currentRoad = null;
+        var timePeriod = null;
+        var bufferParam = null;
+        var roadArray = [];
+
+        var myChart = null;
+
+        var geocoder = null;
+        var roadSearcher = null;
         var map = new AMap.Map("container", {
             resizeEnable: true,
             center: [116.418261, 39.921984],
             zoom: 11
         });
-        var buffers = [];
-        var resultData = [];
-        var isSelected = false;
-        var polyline = null;
-        var timePeriod = null;
-        var mousemoveCircle = getCircle([0,0]);
-        mousemoveCircle.hide();
-        map.add(mousemoveCircle);
-        var bufferParam = getBufferParam();
-        var glob_max = 25
+        var mousemoveCircle = null;
 
         function getCircle(center){
             return new AMap.Circle({
@@ -176,9 +209,9 @@
             // console.info(slideEvt.value);
         }).on('change', function (e) {
 
-            for(var i = 0; i < resultData.length; i++){
-                var result = resultData[i];
-                var heatmap = heatmapLayers[i];
+            roadArray.forEach(function (road) {
+                var result = road.multiStatusPoints;
+                var heatmap = road.heatmap;
                 if(heatmap !== undefined && result !== undefined){
                     glob_max = parseInt($("#ex1").attr("data-slider-max"))-e.value.newValue+parseInt($("#ex1").attr("data-slider-min"))
                     heatmap.setDataSet(
@@ -189,10 +222,37 @@
                     );
                     refreshHeatmapRadius();
                 }
-            }
+            });
 
         });
 
+        var isShow = false;
+        var sidebar = $('#sidebar'); //选择侧栏
+        var mask = $(".mask"); //选择遮罩
+        var backButton = $('.back-to-top'); //选择返回顶部
+        var sidebar_trigger = $('#sidebar_trigger');//选择侧栏触发器
+
+        function tarClick() {
+            if (isShow) {
+                hideSideBar();
+            } else {
+                showSidebar();
+            }
+        }
+
+        function showSidebar() {  //显示侧栏     
+            //mask.fadeIn();  //显示mask
+            isShow = true;
+            sidebar.animate({'right': 0});  //调整侧栏css     
+            //sidebar.css('right',0);//两种写法都ok         
+        }
+
+        function hideSideBar() {  //隐藏mask
+            //mask.fadeOut();
+            isShow = false;
+            sidebar.css('right', '-600px');
+        }
+        sidebar_trigger.on('click', tarClick); //监听侧栏触发器点击
 
         if (!isSupportCanvas()) {
             alert('热力图仅对支持canvas的浏览器适用,您所使用的浏览器不能使用热力图功能,请换个浏览器试试~')
@@ -210,11 +270,11 @@
                     if (status === 'complete' && result.info === 'OK') {
                         // result为对应的地理位置详细信息
                         ac = result.regeocode.addressComponent;
-                        road = result.regeocode.roads[0];
-                        roadId = road.id;
+                        roadInfo = result.regeocode.roads[0];
+                        roadId = roadInfo.id;
                         //查询最近的道路名称
-                        if (road.distance < 200) {
-                            $("#address").val(road.name);
+                        if (roadInfo.distance < 200) {
+                            $("#address").val(roadInfo.name);
                         }
 
                       /*  var roads = [road.name];
@@ -265,9 +325,6 @@
                             }
                         })*/
 
-
-
-
                        if (roadSearcher) {
                             roadSearcher.roadInfoSearchByRoadId(roadId, function (status, result) {
                                 if (status === 'complete' && result.info === 'OK') {
@@ -276,7 +333,17 @@
                                         if (roadResult.id === roadId) {
                                             // 创建折线实例
                                             try {
+                                                //如果为同一条路，则退出
+                                                if(roadOri != null && roadId === roadOri.roadAttr.roadId){
+                                                    return;
+                                                }else if(roadOri){
+                                                    map.remove(roadOri.roadGeometry);
+                                                }
                                                 var i = 0;  // temp TODO
+                                                roadOri = new Road();
+                                                var roadAttr = new RoadAttr();
+                                                var allLength = 0;
+                                                var roadPolylines = [];
                                                 roadResult.path.forEach(function (ePath) {
                                                     var roadPolyline = new AMap.Polyline({
                                                         path: ePath,
@@ -284,40 +351,21 @@
                                                         strokeColor: colar[i % 4], // 线条颜色  // temp TODO
                                                         lineJoin: 'round' // 折线拐点连接处样式
                                                     });
+                                                    allLength += roadPolyline.getLength();
+                                                    roadPolyline.setExtData(roadAttr);
                                                     i++;   // temp TODO
                                                     roadPolylines.push(roadPolyline);
                                                 });
+
+                                                roadAttr.roadId = roadId;
+                                                roadAttr.length = allLength;
+                                                roadAttr.name = roadInfo.name;
+                                                console.log(roadInfo.name); //TODO
+                                                roadAttr.index = roadArray.length;
+                                                roadOri.roadAttr = roadAttr;
+                                                roadOri.roadGeometry = roadPolylines;
                                                 map.add(roadPolylines);
-
-                                                //生成道路的geojson,用于请求缓冲区
-                                                var geojson = new AMap.GeoJSON({
-                                                    geoJSON: null,
-                                                    // 还可以自定义getMarker和getPolyline
-                                                    getPolygon: function (geojson, lnglats) {
-                                                        // 计算面积
-                                                        var area = AMap.GeometryUtil.ringArea(lnglats[0])
-                                                        return new AMap.Polygon({
-                                                            path: lnglats,
-                                                            fillOpacity: 1 - Math.sqrt(area / 8000000000),// 面积越大透明度越高
-                                                            strokeColor: 'white',
-                                                            fillColor: 'red'
-                                                        });
-                                                    }
-                                                });
-
-                                                var allPath = [];
-                                                roadResult.path.forEach(function (ePath) {
-                                                    ePath.forEach(function (point) {
-                                                        allPath.push(point);
-                                                    })
-                                                });
-                                                geojson.addOverlay(new AMap.Polyline({
-                                                    path: allPath,
-                                                    borderWeight: 2, // 线条宽度，默认为 1
-                                                    strokeColor: 'blue', // 线条颜色  // temp TODO
-                                                    lineJoin: 'round' // 折线拐点连接处样式
-                                                }));
-                                                roadPolylinesGeojsonStr = JSON.stringify(geojson.toGeoJSON());
+                                                refreshRoadGeojson(roadOri);
                                             } catch (e) {
                                                 console.log(e);
                                             }
@@ -335,8 +383,20 @@
             }
         }
 
-        function getBufferInfo(buffer){
-            var contents = getBufferContent(buffer);
+        function isExistRoad(roadId){
+            roadPolylines.forEach(function (roadPolyline) {
+                var roadAttr = roadPolyline.getExtData();
+                if(roadAttr == roadId){
+                    return true;
+                }
+            });
+            return false;
+        }
+
+
+
+        function getBufferInfo(road){
+            var contents = getBufferContent(road);
             var result = [];
             result[0] = new AMap.InfoWindow({
                 content: contents[0]  //使用默认信息窗体框样式，显示信息内容
@@ -347,22 +407,24 @@
             return result;
         }
 
-        function getBufferContent(buffer){
-            var index = buffers.indexOf(buffer);
-            var point = buffer.getBounds().getCenter();
+        function getBufferContent(road){
+            var point = road.bufferGeometry.getBounds().getCenter();
             var toShowPointStr = point.getLng().toFixed(5) + ",  " + point.getLat().toFixed(5);
-            var area = buffer.getArea();
+            var area = road.roadAttr.area;
+            var roadName = road.roadAttr.name;
             var info0 = [];
+            info0.push("<div class='input-item'>道路名 : " + roadName + "</div>");
             info0.push("<div class='input-item'>中心点 : " + toShowPointStr + "</div>");
             info0.push("<div class='input-item'>面积 :" + area + "</div>");
             info0.push("<div class='input-item'>时间 :" + timePeriod + "</div>");
             info0.push("<div class='input-item'>数据量 :请先获取数据</div>");
             var info1 = [];
-            if(resultData[index]){
+            if(road.multiStatusPoints){
+                info0.push("<div class='input-item'>道路名 : " + roadName + "</div>");
                 info1.push("<div class='input-item'>中心点 : " + toShowPointStr + "</div>");
                 info1.push("<div class='input-item'>面积 :" + area + "</div>");
                 info1.push("<div class='input-item'>时间 :" + timePeriod + "</div>");
-                info1.push("<div class='input-item'>数据量 :" + resultData[index].length + "</div>");
+                info1.push("<div class='input-item'>数据量 :" + road.multiStatusPoints.length + "</div>");
             }
             var result = [];
             result[0] = info0.join("");
@@ -396,7 +458,7 @@
 */
         $("#queryBuffers").click(function (e) {
             if (lnglat) {
-                if(roadPolylines.length){
+                if(roadOri){
                     var radius = $("#radius").val();
                     if(validateForm("#distinctSearchForm")){
                         $.ajax({
@@ -406,7 +468,7 @@
                             dataType: "json",
                             url: path + "/heatmap/ajax_createBuffers",
                             data:JSON.stringify({
-                                "polylines_geojson":roadPolylinesGeojsonStr,
+                                "polylines_geojson":$("#road_geojson").val(),
                                 "radius":radius
                             }),
                             async: true,
@@ -424,17 +486,24 @@
                                     var pathArray = jsonData.coordinates;
                                     var polygon = new AMap.Polygon(polygonOptions);
                                     polygon.setPath(pathArray);
-                                    buffers.push(polygon);
-                                    getBufferInfo["infoWindows"] = getBufferInfo(polygon);
-                                    (function(polygon){
+
+                                    //以roadOri为模板，深拷贝一个road对象，以表示不同缓冲半径的道路
+                                    currentRoad = _.cloneDeep(roadOri);
+                                    currentRoad.bufferGeometry = polygon;
+                                    currentRoad.roadAttr.area = polygon.getArea();
+                                    currentRoad.roadAttr.hasBuffer = true;
+                                    currentRoad.roadAttr.radius = radius;
+                                    //生成buffer后即可加入统计
+                                    roadArray.push(currentRoad);
+                                    (function(polygon,road){
                                         polygon.on("click",function () {
-                                            currentBufferIndex = buffers.indexOf(polygon)
-                                            refreshGeojson(currentBufferIndex);
+                                            refreshBufferGeojson(road);
+                                            currentRoad = road;
                                         })
-                                    })(polygon);
+                                    })(polygon,currentRoad);
                                 }
-                                bindInfoWindowOnBuffer();
-                                refreshGeojson(buffers.indexOf(polygon))
+                                initInfoWindowOnBuffer();
+                                refreshBufferGeojson(currentRoad);
                             },
                             error: function (errorMessage) {
                                 alert("XML request Error");
@@ -451,26 +520,60 @@
             }
         });
 
-        function refreshGeojson(index){
+
+        /**
+         * 获取指定道路（road）的road的geojson文本对象
+         * 由于目前高德不支持multiPolyline类型，因此暂时以所有点的半随机集合得到的polyline对象代替multiPolyline，
+         * 因此会产生一定误差
+         * @param road 储存buffer的road对象
+         */
+        function refreshRoadGeojson(road){
+            var allPath = [];
+            road.roadGeometry.forEach(function (roadPolyline) {
+                var path = roadPolyline.getPath();
+                path.forEach(function (point) {
+                    allPath.push([point.getLng(),point.getLat()]);
+                })
+            });
+            var roadPolyline = new AMap.Polyline({
+                path: allPath,
+            });
+            refreshGeojson(roadPolyline,"#road_geojson");
+        }
+
+        /**
+         * 获取指定道路（road）的buffer的geojson文本对象
+         * @param road 储存buffer的road对象
+         */
+        function refreshBufferGeojson(road){
+            refreshGeojson(buffer_GCJ02ToWGS84(road.bufferGeometry),"#buffers_geojson");
+        }
+
+        /**
+         * 获取指定geometry的geojson文本对象，只负责转换逻辑，要提前准备好转换对象（包括坐标变化等）
+         * @param geometry 被转换的geometry
+         * @param context 用于存储转换文本的input
+         */
+        function refreshGeojson(geometry,inputId){
             var geojson = new AMap.GeoJSON({
                 geoJSON: null,
             });
-            geojson.addOverlays(buffer_GCJ02ToWGS84(buffers[index]));
-            $("#buffers_geojson").val(JSON.stringify(geojson.toGeoJSON()));
+            geojson.addOverlays(geometry);
+            $(inputId).val(JSON.stringify(geojson.toGeoJSON()));
         }
 
-        function bindInfoWindowOnBuffer(){
-            buffers.forEach(function (buffer) {
-                var index = buffers.indexOf(buffer)
+        function initInfoWindowOnBuffer(){
+            roadArray.forEach(function (road) {
+                var buffer = road.bufferGeometry;
                 //添加buffer的点击弹出信息框事件
                 buffer["isSelected"] = false;
-                buffer["infoWindows"] = getBufferInfo(buffer);
+                buffer["infoWindows"] = getBufferInfo(currentRoad);
                 (function(buffer){
                     var bound = buffer.getBounds();
                     var center = bound.getCenter();
                     buffer.on("click",function(){
                         var infoWindows =  buffer["infoWindows"];
-                        if(resultData[index]){
+                        if(road.multiStatusPoints){
                             //如果数据已经填充，则显示相关数据
                             if(!buffer["isSelected"]){
                                 infoWindows[1].open(map,center);
@@ -487,16 +590,17 @@
                         }
                     });
                 }(buffer));
-            })
+            });
         }
 
         function refreshBuffersContents(){
-            buffers.forEach(function (buffer) {
+            roadArray.forEach(function (road) {
+                var buffer = road.bufferGeometry;
                 var infoWindows = buffer["infoWindows"];
-                var contents = getBufferContent(buffer);
+                var contents = getBufferContent(road);
                 infoWindows[0].setContent(contents[0]);
                 infoWindows[1].setContent(contents[1]);
-            })
+            });
         }
 
         function buffer_GCJ02ToWGS84(buffers){
@@ -519,43 +623,49 @@
 
         $("#queryHeatMap").click(function (e) {
             if (lnglat) {
-                if(buffers.length){
+                if(currentRoad){
                     if (validateForm("#distinctSearchForm")) {
                         //这里不能直接使用表单提交,使用ajax提交表单
                         var jsonData = getBufferParam();
-                        $.ajax({
-                            method: "POST",
-                            timeout: 500000,
-                            contentType: "application/json;charset=utf-8",
-                            dataType: "json",
-                            url: path + "/heatmap/ajax_searchByBuffers",
-                            data: JSON.stringify(jsonData),
-                            async: true,
-                            success: function (result) {
-                                //geojson即为空间裁切后的multipoint
-                                resultData[resultData.length] = result;
-                                var heatmap = new AMap.Heatmap(map, {
-                                    opacity: [0, 0.8],
-                                    radius:parseInt($("#heatmapRadius").val()),
-                                    max:glob_max
-                                });
-                                for (var i=0;i<result.length;i++){
-                                    var point = WGS84ToGCJ02(result[i].lon,result[i].lat);
-                                    result[i].count = 1;
-                                    result[i].lng = point[0];
-                                    result[i].lat = point[1];
+                        if(!currentRoad.heatmap){
+                            $.ajax({
+                                method: "POST",
+                                timeout: 500000,
+                                contentType: "application/json;charset=utf-8",
+                                dataType: "json",
+                                url: path + "/heatmap/ajax_searchByBuffers",
+                                data: JSON.stringify(jsonData),
+                                async: true,
+                                success: function (result) {
+                                    //geojson即为空间裁切后的multipoint
+                                    currentRoad.multiStatusPoints = result;
+                                    currentRoad.roadAttr.num = result.length;
+                                    currentRoad.roadAttr.updateDensity();
+                                    var heatmap = new AMap.Heatmap(map, {
+                                        opacity: [0, 0.8],
+                                        radius:parseInt($("#heatmapRadius").val()),
+                                        max:glob_max
+                                    });
+                                    for (var i=0;i<result.length;i++){
+                                        var point = WGS84ToGCJ02(result[i].lon,result[i].lat);
+                                        result[i].count = 1;
+                                        result[i].lng = point[0];
+                                        result[i].lat = point[1];
+                                    }
+                                    heatmap.setDataSet({
+                                        data: result,
+                                        max: 10
+                                    });
+                                    currentRoad.heatmap = heatmap;
+                                    refreshBuffersContents();
+                                    initEcharts();
+                                    bindEcharts();
+                                },
+                                error: function (errorMessage) {
+                                    alert("XML request Error");
                                 }
-                                heatmap.setDataSet({
-                                    data: result,
-                                    max: 10
-                                });
-                                heatmapLayers.push(heatmap);
-                                refreshBuffersContents();
-                            },
-                            error: function (errorMessage) {
-                                alert("XML request Error");
-                            }
-                        });
+                            });
+                        }
                     }
                 }else{
                     alert("这边建议请先生成buffer呢亲");
@@ -563,7 +673,91 @@
             } else {
                 alert("这边建议请先选取坐标或输入坐标呢亲");
             }
-        })
+        });
+
+        function initEcharts(){
+            myChart = echarts.init(document.getElementById("chart"));
+            var xAlax = [];
+            roadArray.forEach(function (road) {
+                xAlax.push(road.roadAttr.name);
+            });
+            var option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross',
+                        label: {
+                            backgroundColor: '#6a7985'
+                        }
+                    }
+                },
+                legend: {
+                    data: ['道路长度', '缓冲区面积','车辆数','车辆密度'],
+                    selectedMode:'single'
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: xAlax
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+
+        function bindEcharts(){
+            var lengthArray = [];
+            var areaArray = [];
+            var countArray = [];
+            var densityArray = [];
+            roadArray.forEach(function (road) {
+                lengthArray.push(road.roadAttr.length);
+                areaArray.push(road.roadAttr.area);
+                countArray.push(road.roadAttr.num);
+                densityArray.push(road.roadAttr.density);
+            });
+            myChart.setOption({
+                series: [
+                    {
+                        name: '道路长度',
+                        type: 'bar',
+                        areaStyle: {},
+                        data: lengthArray
+                    },{
+                        name: '缓冲区面积',
+                        type: 'bar',
+                        areaStyle: {},
+                        data: areaArray
+                    },{
+                        name: '车辆数',
+                        type: 'bar',
+                        areaStyle: {},
+                        data: countArray
+                    },{
+                        name: '车辆密度',
+                        type: 'bar',
+                        areaStyle: {},
+                        data: densityArray
+                    }
+                ]
+            })
+        }
 
         //加载地理编码组件
         AMap.plugin('AMap.Geocoder', function () {
@@ -595,54 +789,50 @@
             return !!(elem.getContext && elem.getContext('2d'));
         }
 
-        $("#start_time").attr("value", "2016-08-01T18:00");
 
         $("#clearBuffers").click(function (e){
-            map.remove(buffers);
-            buffers = [];
-            buffersJson = null;
+            roadArray.forEach(function (road) {
+                map.remove(road.bufferGeometry);
+            });
+            $("buffers_geojson").val("");
+            roadArray = [];
+            initEcharts();
+            bindEcharts();
         });
         $("#clearRoads").click(function () {
-            map.remove(roadPolylines);
-            roadPolylines = [];
-        })
+            map.remove(roadOri.roadGeometry);
+            $("road_geojson").val("");
+            roadOri = null;
+        });
         map.on('moveend',function () {
             refreshHeatmapRadius();
-        })
+        });
         $("#clearHeatMap").click(function (e){
-            heatmapLayers.forEach(function (heatmap) {
-                map.remove(heatmap);
-            });
-            buffers.forEach(function (buffer) {
-                (buffer["infoWindows"]).forEach(function (infoWindow) {
+            roadArray.forEach(function (road) {
+                map.remove(road.heatmap);
+                road.roadAttr.num = 0;
+                road.roadAttr.density = 0;
+                (road.bufferGeometry["infoWindows"]).forEach(function (infoWindow) {
                     infoWindow.close();
                 });
             });
-            resultData = [];
-            heatmapLayers = [];
-        })
+            bindEcharts();
+        });
 
-        $("#autoSetRadius").click(function (e){
-            if(autoFlag){
-                $(this).text("手动设置半径")
-            }else{
-                $(this).text("自动设置半径")
-            }
-            autoFlag = !autoFlag;
-        })
 
         function refreshHeatmapRadius() {
             if(validateInput("#heatmapRadius")){
-                heatmapLayers.forEach(function (heatmap) {
-                    heatmap.setOptions({
-                        radius: parseInt($("#heatmapRadius").val()), //给定半径
-                        opacity: [0, 0.8],
-                        zooms:[9,17]
-                    });
-                })
+                roadArray.forEach(function (road) {
+                    if(road.heatmap){
+                        road.heatmap.setOptions({
+                            radius: parseInt($("#heatmapRadius").val()), //给定半径
+                            opacity: [0, 0.8],
+                            zooms:[9,17]
+                        });
+                    }
+                });
             }
         }
-
 
         //Tool
         //映射时间毫秒数
@@ -676,18 +866,29 @@
         }
 
         function initTimePeriod(){
+            handleTimePeriod();
+        }
+
+        function refreshTimePeriod(){
+            handleTimePeriod();
+            roadArray.forEach(function (road) {
+                if(road.heatmap){
+                    $("#clearHeatMap").click();
+                    return false;
+                }
+            });
+            refreshBuffersContents();
+        }
+
+        function handleTimePeriod(){
             var start_time =  new Date($("#start_time").val());
             var unitNmae = $('input[name="unitRadio"]:checked').val();
             var interval = mapTime(unitNmae,parseFloat($("#interval").val()));
             var end_time = new Date(start_time.getTime() + interval);
             timePeriod = moment(start_time).format("YYYY-MM-DD HH:mm:ss") + ' - '
-            + moment(end_time).format("YYYY-MM-DD HH:mm:ss");
-            $("#clearHeatMap").click();
-        }
-
-        function refreshTimePeriod(){
-            initTimePeriod();
-            refreshBuffersContents();
+                + moment(end_time).format("YYYY-MM-DD HH:mm:ss");
+            $("#time-start").text(moment(start_time).format("YYYY-MM-DD HH:mm:ss"));
+            $("#time-end").text(moment(end_time).format("YYYY-MM-DD HH:mm:ss"));
         }
 
         function bindRefreshUnitHint(){
@@ -735,6 +936,107 @@
             });
         }
 
+        /**
+         *
+         * @param buttonId
+         * @param textShowId
+         * @param defaultText
+         * @param switchText
+         */
+        function bindButtonSwitchEvent(buttonId,textShowId,textMap,funMap){
+            var hasFunMap = (typeof(funMap) != "undefined");
+            (function (flag) {
+                $(buttonId).click(function (e){
+                    if(flag){
+                        //有ture变为false时执行的操作
+                        $(textShowId).text(textMap["false"]);
+                        $(textShowId).val(textMap["false"]);
+                        if(hasFunMap){
+                            funMap["false"]();
+                        }
+                    }else{
+                        //有false变为true时执行的操作
+                        $(textShowId).text(textMap["true"]);
+                        $(textShowId).val(textMap["true"]);
+                        if(hasFunMap){
+                            funMap["true"]();
+                        }
+                    }
+                    flag = !flag;
+                });
+            })(false);
+        }
+
+
+        function bindButtonSwitch() {
+            bindButtonSwitchEvent("#hideRoads","#hideRoads",
+                {
+                    "true":"显示道路线",
+                    "false":"隐藏道路线"
+                },
+                {
+                    "true":function () {
+                        if(roadOri){
+                            roadOri.roadGeometry.forEach(function (polyline) {
+                                polyline.hide();
+                            });
+                        }
+                    },
+                    "false":function () {
+                        if(roadOri){
+                            roadOri.roadGeometry.forEach(function (polyline) {
+                                polyline.show();
+                            });
+                        }
+                    }
+                }
+            );
+            bindButtonSwitchEvent("#hideBuffers","#hideBuffers",
+                {
+                    "true":"显示缓冲区",
+                    "false":"隐藏缓冲区"
+                },
+                {
+                    "true":function () {
+                        if(roadArray.length){
+                            roadArray.forEach(function (road) {
+                                road.bufferGeometry.hide()
+                            });
+                        }
+                    },
+                    "false":function () {
+                        if(roadArray.length){
+                            roadArray.forEach(function (road) {
+                                road.bufferGeometry.show();
+                            });
+                        }
+                    }
+                }
+            );
+            bindButtonSwitchEvent("#hideHeatmap","#hideHeatmap",
+                {
+                    "true":"显示热力图",
+                    "false":"隐藏热力图"
+                },
+                {
+                    "true":function () {
+                        if(roadArray.length){
+                            roadArray.forEach(function (road) {
+                                if(road.heatmap) road.heatmap.hide()
+                            });
+                        }
+                    },
+                    "false":function () {
+                        if(roadArray.length){
+                            roadArray.forEach(function (road) {
+                                if(road.heatmap) road.heatmap.show()
+                            });
+                        }
+                    }
+                }
+            )
+        }
+
         //Tool TODO 暂时用于判断对象数据相等
         function isEqual(obj1,obj2){
             return JSON.stringify(obj1) === JSON.stringify(obj2);
@@ -761,13 +1063,31 @@
             bindEnterInitTimePeriodEvent("#interval");
         }
 
+        function initRightClickCircle(){
+            mousemoveCircle = getCircle([0,0]);
+            mousemoveCircle.hide();
+            map.add(mousemoveCircle);
+        }
+
+        function initParam(){
+            bufferParam = getBufferParam();
+        }
+
+        function initStart_time(){
+            $("#start_time").attr("value", "2016-08-01T18:00");
+        }
+
 
         function init(){
+            initStart_time();
+            initParam();
             initUnitHint();
             initTimePeriod();
+            initRightClickCircle();
             bindRefreshUnitHint();
             bindKeyUpCheck();
             bindInitTimePeriod();
+            bindButtonSwitch();
         }
 
         init();
@@ -775,6 +1095,19 @@
 
 </script>
 
+<nav class="navbar navbar-default" style="margin: 0px">
+    <p class="navbar-text">
+        <b>
+            街道缓冲区分析
+        </b>
+    </p>
+    <div class="container-fluid">
+        <div style="width: 10%;height: 10%;z-index: 100;position: relative;float:right;margin-top: 0.5%"
+             id="sidebar_trigger">
+            <i style="font-size: 30px" class="fa fa-bars "></i>
+        </div>
+    </div>
+</nav>
 <div id="container">
     <div style="position: relative;z-index: 999;height: 10%;width: 40%;top: 85%;left: 20%;background: transparent">
         <span style="position: relative;left: 40%;">
@@ -807,6 +1140,7 @@
             <input id='start_time' name="start_time" class="input-item-copy" type="datetime-local" regr="\S"
                    tip="请按规范填写日期!">
             <%--隐藏域--%>
+            <input id="road_geojson" name="road_geojson" type="hidden">
             <input id="buffers_geojson" name="buffers_geojson" type="hidden">
         </div>
         <div class="input-item">
@@ -834,11 +1168,18 @@
     </form>
 
     <div class="input-item">
-        <button class="btn" id="queryBuffers">查询缓冲区</button>
-        <span>&nbsp;&nbsp;&nbsp;</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="clearRoads">清空道路线</button>
         <span>&nbsp;&nbsp;&nbsp;</span>
+        <button class="btn" id="hideRoads">隐藏道路线</button>
+    </div>
+
+    <div class="input-item">
+        <button class="btn" id="queryBuffers">查询缓冲区</button>
+        <span>&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="clearBuffers">清空缓冲区</button>
+        <span>&nbsp;&nbsp;&nbsp;</span>
+        <button class="btn" id="hideBuffers">隐藏缓冲区</button>
     </div>
 
     <div class="input-item">
@@ -846,10 +1187,31 @@
         <span>&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="clearHeatMap">清空热力图</button>
         <span>&nbsp;&nbsp;&nbsp;</span>
-        <button class="btn" id="autoSetRadius">手动设置半径</button>
+        <button class="btn" id="hideHeatmap">隐藏热力图</button>
+        <!--<span>&nbsp;&nbsp;&nbsp;</span>
+        <button class="btn" id="autoSetRadius">手动设置半径</button>-->
     </div>
 
 </div>
+
+<div id="sidebar" style="color:black">
+    <h3 style="margin-top: 60px;font-size: 40px;font-weight: bold">
+        街道缓冲区统计图
+    </h3>
+    <div id="time-period" class="row">
+        <div class="col-md-5">
+            <p id="time-start">2016-08-01 18.00</p>
+        </div>
+        <div class="col-md-2">
+            <p id="time-division">至</p>
+        </div>
+        <div class="col-md-5">
+            <p id="time-end">2016-08-01 22:00</p>
+        </div>
+    </div>
+    <div id="chart" style="width:100%; height:50%; position: relative;"></div>
+</div>
+
 </body>
 </html>
 

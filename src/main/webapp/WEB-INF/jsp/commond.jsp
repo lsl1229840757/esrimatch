@@ -12,10 +12,12 @@
     <script src="${path}/html/gcoord.js"></script>
     <script src="${path}/html/turf.js"></script>
     <script src="${path}/js/coordinate-transformation.js"></script>
+    <!--引入外部的bootstrap中的js文件-->
+    <script src="${path}/bootstrap/js/bootstrap.min.js"></script>
+    <script src="${path}/js/echarts.min.js"></script>
+    <link rel="stylesheet" href="${path}/css/sidebar.css"/>
 </head>
 <body>
-
-
 <script>
     $(function(){
 
@@ -145,7 +147,42 @@
         var currentBoxData = [];
         var currentBoxesIndex = 0;
         var timePeriod = [];
+        var geocoderroadSearcher = null;
+        var timeLineEcharts = [];
+        var boxNumEcharts = [];
+        var selectedBox = null;
+        var myChart = null;
+        var randomArray = [];
 
+        var isShow = false;
+        'use strict';
+        var sidebar = $('#sidebar'); //选择侧栏
+        var mask = $(".mask"); //选择遮罩
+        var backButton = $('.back-to-top'); //选择返回顶部
+        var sidebar_trigger = $('#sidebar_trigger');//选择侧栏触发器
+
+        function tarClick() {
+            if (isShow) {
+                hideSideBar();
+            } else {
+                showSidebar();
+            }
+        }
+
+        function showSidebar() {  //显示侧栏     
+            //mask.fadeIn();  //显示mask
+            isShow = true;
+            sidebar.animate({'right': 0});  //调整侧栏css     
+            //sidebar.css('right',0);//两种写法都ok         
+        }
+
+        function hideSideBar() {  //隐藏mask
+            //mask.fadeOut();
+            isShow = false;
+            sidebar.css('right', '-600px');
+        }
+
+        sidebar_trigger.on('click', tarClick); //监听侧栏触发器点击
 
         var map = new AMap.Map("container", {
             resizeEnable: true,
@@ -327,7 +364,6 @@
             return boxes_wgs84;
         }
 
-
         //bind
         //clickEvent - #createBoxes_nineBoxes
         //生成预测区
@@ -356,6 +392,8 @@
                         });
                         //绑定infoWindow
                         bindInfoWindowOnBox();
+                        //绑定box被选取事件
+                        bindBoxSelected();
                         map.add(boxes);
                         $("#geometry_geojson").val(toGeoJsonStr(boxes_GCJ02ToWGS84(boxes)));
 
@@ -376,34 +414,73 @@
             }
         });
 
+        function bindBoxSelected(){
+            boxes.forEach(function (box) {
+                box.on('click',function(){
+                  if(selectedBox && selectedBox != box){
+                      selectedBox.setOptions({
+                          fillOpacity:0.5,
+                          strokeOpacity:0.5
+                      });
+                      selectedBox = box;
+                      boxNumEcharts = getTimeLineNum(boxes.indexOf(box));
+                      selectedBox.setOptions({
+                          fillOpacity:0.7,
+                          strokeOpacity:0.7
+                      })
+                      if(myChart){
+                          refreshEcharts();
+                      }
+                  }else if(!selectedBox){
+                      selectedBox = box;
+                      boxNumEcharts = getTimeLineNum(boxes.indexOf(box));
+                      selectedBox.setOptions({
+                          fillOpacity:0.7,
+                          strokeOpacity:0.7
+                      });
+                      if(myChart){
+                          refreshEcharts();
+                      }
+                  }
+                });
+            })
+        }
+
+
+
+        function getTimeLineNum(n){
+            var result = [];
+            for(var i = 0; i < statusCountData.length;i++){
+                result.push(statusCountData[i][n]);
+            }
+            return result;
+        }
 
         function bindInfoWindowOnBox(){
             boxes.forEach(function (rectangle) {
                 //添加rectangle的点击弹出信息框事件
                 rectangle["isSelected"] = false;
                 rectangle["infoWindows"] = getBoxInfo(rectangle);
-                (function(rectangle){
-                    var bound = rectangle.getBounds();
-                    var center = bound.getCenter();
-                    rectangle.on("click",function(){
-                        var infoWindows =  rectangle["infoWindows"];
-                        if(statusCountData.length){
-                            //如果数据已经填充，则显示相关数据
-                            if(!rectangle["isSelected"]){
-                                infoWindows[1].open(map,center);
-                            }else{
-                                infoWindows[1].close();
-                            }
+                var bound = rectangle.getBounds();
+                var center = bound.getCenter();
+                rectangle.on("click",function(){
+                    var infoWindows =  rectangle["infoWindows"];
+                    if(statusCountData.length){
+                        //如果数据已经填充，则显示相关数据
+                        if(!rectangle["isSelected"]){
+                            infoWindows[1].open(map,center);
                         }else{
-                            //如果数据尚未填充
-                            if(!rectangle["isSelected"]){
-                                infoWindows[0].open(map,center);
-                            }else{
-                                infoWindows[0].close();
-                            }
+                            infoWindows[1].close();
                         }
-                    });
-                }(rectangle));
+                    }else{
+                        //如果数据尚未填充
+                        if(!rectangle["isSelected"]){
+                            infoWindows[0].open(map,center);
+                        }else{
+                            infoWindows[0].close();
+                        }
+                    }
+                });
             })
         }
 
@@ -416,7 +493,6 @@
                 infoWindows[1].setContent(contents[1]);
             })
         }
-
 
         //获得box的详细信息
         function getBoxInfo(box){
@@ -449,7 +525,7 @@
                 info1.push("<div class='input-item'>经纬度 : " + toShowPointStr + "</div>");
                 info1.push("<div class='input-item'>边长 :" + parseFloat($("#sideLength").val()) + "</div>");
                 info1.push("<div class='input-item'>时间 :" + timePeriod[currentBoxesIndex] + "</div>");
-                info1.push("<div class='input-item'>载客数 :" + handleConsumerNum(statusCountData[currentBoxesIndex][rectIndex]) + "</div>");
+                info1.push("<div class='input-item'>载客数 :" + statusCountData[currentBoxesIndex][rectIndex] + "</div>");
             }
             var result = [];
             result[0] = info0.join("");
@@ -459,7 +535,30 @@
 
         function handleConsumerNum(oriNum){
             var temp = oriNum > 0 ? oriNum: -oriNum;
-            return Math.floor(temp / 100);
+            /*return Math.floor(temp / 100);*/
+            return temp;
+        }
+
+        function handleConsumerNumArray(oriNumArray){
+            var resultArray = [];
+            var min = Math.min.apply(Math,oriNumArray);
+            if(min < 0){
+                for(var i =0 ;i < oriNumArray.length; i++){
+                    resultArray.push(oriNumArray[i] + min + randomArray[i]);
+                }
+                return resultArray;
+            }
+            return oriNumArray;
+        }
+
+        function handleStatusArray(){
+            for(var i = 0 ; i< statusCountData.length; i++){
+                for(var n = 0; n < boxes.length; n++){
+                    if(statusCountData[i][n]){
+                        statusCountData[i][n] = Math.abs(statusCountData[i][n]);
+                    }
+                }
+            }
         }
 
         //bind
@@ -526,10 +625,8 @@
         //在指定位置打开信息窗体
         function openBoxInfo(mapEvent) {
             //构建信息窗体中显示的内容
-
             infoWindow.open(map, map.getCenter());
         }
-
 
         //bind
         //clickEvent - #predict
@@ -553,10 +650,12 @@
                         data:JSON.stringify(predictParam),
                         async: true,
                         success: function (result) {
+                            statusCountData = [];
                             jQuery.each(result,function (key,value) {
                                 statusCountData.push(value);
                                 timePeriod.push(key);
                             });
+                            handleStatusArray();
                             //时间轴更新后，重新渲染当前预测区，恢复默认色彩
                             bindTimeLine();
                             refreshBox(currentBoxesIndex);
@@ -568,6 +667,8 @@
                             });
                             //重新绑定infowindow，更新信息
                             bindInfoWindowOnBox();
+                            initEcharts();
+                            refreshRandomArray();
                             $("#awaitHint").text("");
                         },
                         error: function (errorMessage) {
@@ -582,6 +683,13 @@
 
             /*}*/
         });
+
+        function refreshRandomArray(){
+            randomArray = [];
+            for(var i = 0 ; i < statusCountData.length; i++){
+                randomArray.push(200 + Math.random()*300);
+            }
+        }
 
         //获取取得预测数据的ajax请求参数，返回json格式
         function getPredictParam(){
@@ -687,6 +795,69 @@
                 alert("这边建议先获取预测数据呢")
             }
         });
+
+        function initEcharts(){
+            // 绘制echarts图表
+            myChart = echarts.init(document.getElementById("chart"));
+
+            var option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross',
+                        label: {
+                            backgroundColor: '#6a7985'
+                        }
+                    }
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: timeLineEcharts
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        stack: '总量',
+                        areaStyle: {},
+                        data: boxNumEcharts
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+
+        function refreshEcharts(){
+            myChart.setOption({
+                series: [
+                    {
+                        type: 'line',
+                        stack: '总量',
+                        areaStyle: {},
+                        data: boxNumEcharts
+                    }
+                ]
+            })
+        }
+
 
         //等待高德api返回结果后调用，计算权重，添加推荐地点marker
         function callback(){
@@ -855,23 +1026,31 @@
             //清空数据
             currentBoxesIndex = 0;
             statusCountData = [];
+            timeLineEcharts= [];
             refreshPeriodHint();
             var predictParam = getPredictParam();
             var old_date = new Date(predictParam["oldest_time"]);
             var timeLineNum = predictParam["intervalNum"] + parseInt($("#predictCertainTime").val());
             //清除li
             $("#events").find("ol").empty();
+            var dateArray = [];
             //添加新的li，并用过indexTag绑定下标
-            for(var i = 0; i < timeLineNum; i++){
+            for(var i = 0; i < timeLineNum + 1; i++){
                 var date = new Date( old_date.getTime() + i*predictParam["interval"]);
                 var data2dateStr = moment(date).format("DD/MM/YYYYTHH:mm");
                 var dateShowText = moment(date).format("YYYY-MM-DD HH:mm");
-                $("#events").find("ol").append('<li><a href=\"#0\" indexTag=\"'+ i + '\" data-date=\"'+ data2dateStr +'\">' + dateShowText + '</a></li>');
+                if(i < timeLineNum){
+                    timeLineEcharts.push(dateShowText);
+                    $("#events").find("ol").append('<li><a href=\"#0\" indexTag=\"'+ i + '\" data-date=\"'+ data2dateStr +'\">' + dateShowText + '</a></li>');
+                }
+                dateArray.push(date);
             }
             //指定最小间隔为120px，起始偏移为60px
             initTimeLineO(120,60);
             //恢复默认填充color
             refreshBox(currentBoxesIndex);
+            $("#time-start").text(timeLineEcharts[0]);
+            $("#time-end").text(moment(dateArray[dateArray.length-1]).format("YYYY-MM-DD HH:mm"));
         }
 
         //绑定数据，为节点绑定指定渲染数据
@@ -1293,6 +1472,7 @@
         //bind
         //为输入框绑定bindBlurInitTimeLineEvent
         function bindBlurInitTimeLine(){
+            bindBlurInitTimeLineEvent("#now_time");
             bindBlurInitTimeLineEvent("#interval");
             bindBlurInitTimeLineEvent("#intervalNum");
             bindBlurInitTimeLineEvent("#predictCertainTime");
@@ -1302,10 +1482,10 @@
         //绑定刷新时间轴事件
         function bindEnterInitTimeLine(){
 
+            bindEnterInitTimeLineEvent("#now_time");
             bindEnterInitTimeLineEvent("#interval");
             bindEnterInitTimeLineEvent("#intervalNum");
             bindEnterInitTimeLineEvent("#predictCertainTime");
-            bindEnterInitTimeLineEvent("#intervalNum");
         }
 
         function bindRefreshUnitHint(){
@@ -1545,6 +1725,19 @@
 
 </style>
 
+<nav class="navbar navbar-default" style="margin: 0px">
+    <p class="navbar-text">
+        <b>
+            区域流入流出分析
+        </b>
+    </p>
+    <div class="container-fluid">
+        <div style="width: 10%;height: 10%;z-index: 100;position: relative;float:right;margin-top: 0.5%"
+             id="sidebar_trigger">
+            <i style="font-size: 30px" class="fa fa-bars "></i>
+        </div>
+    </div>
+</nav>
 <div id="container">
     <div class="wrapper">
         <!-- content -->
@@ -1581,9 +1774,6 @@
         </section>
     </div>
 </div>
-
-<div class="input-card" style="width: auto;">
-</div>>
 
 <div class="input-card" style="width: auto;">  <!-- style="height:80%;overflow:auto;width: auto;-->
 
@@ -1729,6 +1919,24 @@
         <span>&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="clearCommend">清除推荐信息</button>
     </div>
+</div>
+
+<div id="sidebar" style="color:black">
+    <h3 style="margin-top: 60px;font-size: 40px;font-weight: bold">
+        出租车载客分析
+    </h3>
+    <div id="time-period" class="row">
+        <div class="col-md-5">
+            <p id="time-start">2016-08-01 02.00</p>
+        </div>
+        <div class="col-md-2">
+            <p id="time-division">至</p>
+        </div>
+        <div class="col-md-5">
+            <p id="time-end">2016-08-01 22:00</p>
+        </div>
+    </div>
+    <div id="chart" style="width:100%; height:50%; position: relative;"></div>
 </div>
 
 </body>

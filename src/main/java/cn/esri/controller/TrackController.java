@@ -28,7 +28,7 @@ public class TrackController {
     @ResponseBody
     @RequestMapping("get_car_ids")
     public List<Integer> getCarIds(String id,String date){
-        date = "data_" + date.replaceAll("-","_");
+        date = "car_" + date.replaceAll("-","_");
         return trackMapper.getCarIds(id,date);
     }
 
