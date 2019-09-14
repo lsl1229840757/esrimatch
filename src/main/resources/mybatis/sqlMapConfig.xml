@@ -17,7 +17,7 @@
     <mappers>
         <mapper resource="cn/esri/mapper/StatusMapper.xml"/>
         <mapper resource="cn/esri/mapper/UtilsMapper.xml"/>
-        <mapper resource="cn/esri/mapper/TrackMapper.xml"/>
+        <mapper resource="cn/esri/mapper/TrackNS.xml"/>
     </mappers>
 
 

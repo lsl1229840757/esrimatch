@@ -191,6 +191,11 @@
                         出租车密度预测与上车地点推荐
                     </span>
                 </a>
+                <a href="#${path}/html/cluster.html" class="list-group-item">
+                    <span class="fa fa-thumbs-o-up">
+                        DBSCAN聚类推荐
+                    </span>
+                </a>
             </div>
         </div>
 

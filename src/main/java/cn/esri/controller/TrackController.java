@@ -30,49 +30,62 @@ public class TrackController {
     @JsonResult
     @ResponseBody
     @RequestMapping("get_car_id")
-    public List<Integer> getCarId(){
+    public List<Integer> getCarId() {
         return trackMapper.getCarId(1000);
     }
 
     @JsonResult
     @ResponseBody
     @RequestMapping("get_car_ids")
-    public List<Integer> getCarIds(String id,String date){
-        date = "car_" + date.replaceAll("-","_");
-        return trackMapper.getCarIds(id,date);
+    public List<Integer> getCarIds(String id, String date) {
+        date = "car_" + date.replaceAll("-", "_");
+        return trackMapper.getCarIds(id, date);
     }
-
 
     @JsonResult
     @ResponseBody
     @RequestMapping("get_by_id")
-    public List<Point> getById(Integer id){
+    public List<Point> getById(Integer id) {
         return trackMapper.getById(id);
     }
 
     @JsonResult
     @ResponseBody
     @RequestMapping("get_by_date")
-    public List<Map> getByDate(Integer id, String day){
-        String data_table = "data_" + day.replaceAll("-","_");
-        return trackMapper.getByCount(data_table,id);
+    public List<Map> getByDate(Integer id, String day) {
+        String data_table = "data_" + day.replaceAll("-", "_");
+        return trackMapper.getByCount(data_table, id);
     }
 
     /**
-     *
      * @param date 查询日期
      * @return 返回车辆有效里程和无效里程，用于画散点图
      */
     @JsonResult
     @ResponseBody
     @RequestMapping("ajax_getMiles")
-    public JSONArray ajax_getMiles(Date date){
+    public JSONArray ajax_getMiles(Date date) {
         return trackService.getMilesAndCarrayingMiles(date);
     }
 
     @InitBinder
-    public void bintDate(WebDataBinder binder){
+    public void bintDate(WebDataBinder binder) {
         binder.registerCustomEditor(Date.class, new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"), false));
     }
 
+    @ResponseBody
+    @RequestMapping("get_start_point")
+    public List<Map> getStartPoint(String day, String timeStart, String timeEnd,
+                                   String eps, String min) {
+        String data_table = "track_" + day.replaceAll("-", "_");
+        return trackMapper.getStartPoint(data_table, timeStart, timeEnd, eps, min);
+    }
+
+    @ResponseBody
+    @RequestMapping("get_end_point")
+    public List<Map> getEndPoint(String day, String timeStart, String timeEnd,
+                                 String eps, String min) {
+        String data_table = "track_" + day.replaceAll("-", "_");
+        return trackMapper.getEndPoint(data_table, timeStart, timeEnd, eps, min);
+    }
 }
