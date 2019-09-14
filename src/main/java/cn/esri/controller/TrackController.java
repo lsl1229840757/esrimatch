@@ -2,12 +2,20 @@ package cn.esri.controller;
 
 import cn.esri.handler.JsonResult;
 import cn.esri.mapper.TrackMapper;
+import cn.esri.service.TrackService;
 import cn.esri.vo.Point;
+import net.sf.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +24,8 @@ import java.util.Map;
 public class TrackController {
     @Autowired
     private TrackMapper trackMapper;
+    @Resource
+    private TrackService trackService;
 
     @JsonResult
     @ResponseBody
@@ -48,5 +58,21 @@ public class TrackController {
         return trackMapper.getByCount(data_table,id);
     }
 
+    /**
+     *
+     * @param date 查询日期
+     * @return 返回车辆有效里程和无效里程，用于画散点图
+     */
+    @JsonResult
+    @ResponseBody
+    @RequestMapping("ajax_getMiles")
+    public JSONArray ajax_getMiles(Date date){
+        return trackService.getMilesAndCarrayingMiles(date);
+    }
+
+    @InitBinder
+    public void bintDate(WebDataBinder binder){
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"), false));
+    }
 
 }
