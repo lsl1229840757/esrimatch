@@ -11,11 +11,13 @@
     <typeAliases>
         <typeAlias type="cn.esri.vo.DistinctQuery" alias="DistinctQuery" />
         <typeAlias type="cn.esri.vo.Status" alias="Status"/>
+        <typeAlias type="cn.esri.vo.Track" alias="Track"/>
     </typeAliases>
 
     <mappers>
         <mapper resource="cn/esri/mapper/StatusMapper.xml"/>
         <mapper resource="cn/esri/mapper/UtilsMapper.xml"/>
+        <mapper resource="cn/esri/mapper/TrackMapper.xml"/>
     </mappers>
 
 

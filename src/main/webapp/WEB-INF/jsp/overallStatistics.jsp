@@ -15,6 +15,11 @@
             height: 400px;
         }
 
+        .allDataScatter {
+            width: 100%;
+            height: 400px;
+        }
+
         .my-form {
             background-color: transparent;
             border-radius: 0;
@@ -78,8 +83,159 @@
                         console.log(errorMessage);
                     }
                 });
+
+
+                $.ajax({
+                    method: "POST",
+                    timeout: 5000,
+                    contentType: "application/x-www-form-urlencoded",
+                    dataType: "json",
+                    url: path + "/track/ajax_getMiles",
+                    data: {
+                        "date": time
+                    },
+                    async: true,
+                    success: function (result) {
+                        result = result["data"];
+                        var data = [];
+                        var car_id = [];
+                        var ratio = [];
+                        var maxMiles = 0;
+                        for(var i=0;i<result.length;i++){
+                            var validMiles = result[i][1]/1000;
+                            var invalidMiles = result[i][0]/1000;
+                            if(invalidMiles<700&&validMiles<700){
+                                if(validMiles>maxMiles)
+                                    maxMiles = validMiles;
+                                car_id.push(result[i][0]);
+                                data.push([invalidMiles, validMiles]);
+                                ratio.push([result[i][0], parseFloat((validMiles/invalidMiles).toFixed(2))]);
+                            }else{
+                                delete result[i];
+                            }
+                        }
+                        //绘制散点图
+                        var myChart = echarts.init(document.getElementById("allMiles"));
+                        var option = {
+                            title: {
+                                text: time+'载客里程-空载里程散点图',
+                                left: 'center',
+                                top: 0
+                            },
+                            visualMap: {
+                                min: 0,
+                                max: maxMiles,
+                                dimension: 1,
+                                orient: 'vertical',
+                                right: 10,
+                                top: 'center',
+                                text: ['HIGH', 'LOW'],
+                                calculable: true,
+                                inRange: {
+                                    color: ['#24b7f2','#f2c31a']
+                                }
+                            },
+                            tooltip: {
+                                trigger: 'item',
+                                formatter:function (params) {
+                                    return params.marker+'车辆id:'+car_id[params.dataIndex]+"<br>"+"载客里程:"
+                                        +params.data[1]+"KM"+"<br>"+"空载里程:"+params.data[0]+"KM";
+                                },
+                                axisPointer: {
+                                    type: 'cross'
+                                }
+                            },
+                            xAxis: [{
+                                // name:"空载里程",
+                                type: 'value'
+                            }],
+                            yAxis: [{
+                                // name:"载客里程(KM)",
+                                type: 'value'
+                            }],
+                            series: [{
+                                name: 'price-area',
+                                type: 'scatter',
+                                symbolSize: 5,
+                                data: data
+                            }]
+                        };
+                        myChart.setOption(option);
+                        //绘制饼状图
+                        ratio.sort(function (x,y) {
+                            return y[1]-x[1];
+                        });
+                        //排序前十名
+                        var pieData = {
+                            legendData:[],
+                            selected:[],
+                            seriesData:[]
+                        };
+                        for(var i=0;i<9;i++){
+                            pieData.legendData.push(ratio[i][0]);
+                            pieData.selected.push(true);
+                            pieData.seriesData.push({
+                                name:ratio[i][0],
+                                value:ratio[i][1]
+                            });
+                        }
+                        var myPieChart = echarts.init(document.getElementById("allMilesPie"));
+                        var optionPie = {
+                            title : {
+                                text: time+"载客里程/空载里程最大的前10名",
+                                x:'center'
+                            },
+                            tooltip : {
+                                trigger: 'item',
+                                formatter: "{a} <br/>{b} : {c} ({d}%)"
+                            },
+                            legend: {
+                                type: 'scroll',
+                                orient: 'vertical',
+                                right: 10,
+                                top: 20,
+                                bottom: 20,
+                                data: pieData.legendData,
+                                selected: pieData.selected
+                            },
+                            labelLine: {
+                                normal: {
+                                    lineStyle: {
+                                        color: 'rgba(255, 255, 255, 0.3)'
+                                    },
+                                    smooth: 0.2,
+                                    length: 10,
+                                    length2: 20
+                                }
+                            },
+                            series : [
+                                {
+                                    name: '详细信息',
+                                    type: 'pie',
+                                    radius: ['50%', '70%'],
+                                    center: ['40%', '50%'],
+                                    data: pieData.seriesData,
+                                    itemStyle: {
+                                        emphasis: {
+                                            shadowBlur: 10,
+                                            shadowOffsetX: 0,
+                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        myPieChart.setOption(optionPie);
+
+                    },
+                    error: function (errorMessage) {
+                        alert("XML request Error");
+                        console.log(errorMessage);
+                    }
+                });
                 $(".allDataBar").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
                 $(".allDataPie").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
+                $(".allDataScatter").css({"background-color":"whitesmoke","padding":"3%","border-radius":"20px"});
             });
 
 
@@ -186,7 +342,6 @@
         }
 
         function initSingleDataBarPercent(result, k, time, type){
-
             var colum = 0;//默认距离
             var title = ["行驶距离", "(公里)"];
             var divId = "allDistance";
@@ -308,7 +463,6 @@
                     colum = 1;
                     title = ["接客时长", "(小时)"];
                     divId = "allTime";
-
                     break;
                 case "num":
                     colum = 2;
@@ -440,27 +594,35 @@
         </div>
     </div>
     <div class="row" style="margin-top: 50px;">
-        <div class="col-md-7 col-sm-7">
+        <div class="col-md-6 col-sm-6">
             <div id="allDistance" class="allDataBar"></div>
         </div>
-        <div class="col-md-5 col-sm-5">
+        <div class="col-md-6 col-sm-6">
             <div id="maxDistance" class="allDataPie"></div>
         </div>
     </div>
     <div class="row" style="margin-top: 50px;">
-        <div class="col-md-5 col-sm-5">
+        <div class="col-md-6 col-sm-6">
             <div id="maxTime" class="allDataPie"></div>
         </div>
-        <div class="col-md-7 col-sm-7">
+        <div class="col-md-6 col-sm-6">
             <div id="allTime" class="allDataBar"></div>
         </div>
     </div>
     <div class="row" style="margin-top: 50px;">
-        <div class="col-md-7 col-sm-7">
+        <div class="col-md-6 col-sm-6">
             <div id="allNum" class="allDataBar"></div>
         </div>
-        <div class="col-md-5 col-sm-5">
+        <div class="col-md-6 col-sm-6">
             <div id="maxNum" class="allDataPie"></div>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 50px;">
+        <div class="col-md-6 col-sm-6">
+            <div id="allMiles" class="allDataScatter"></div>
+        </div>
+        <div  class="col-md-6 col-sm-6">
+            <div id="allMilesPie" class="allDataPie"></div>
         </div>
     </div>
 </div>
