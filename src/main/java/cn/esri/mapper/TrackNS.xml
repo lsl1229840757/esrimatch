@@ -3,7 +3,6 @@
         "http://mybatis.apache.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="cn.esri.mapper.TrackNS">
-
     <resultMap id="TrackResultMap" type="Track">
         <result property="car_id" column="car_id"/>
         <result property="length" column="length"/>
@@ -17,7 +16,4 @@
         </if>
         GROUP BY car_id ORDER BY car_id ASC
     </select>
-
-
-
 </mapper>
