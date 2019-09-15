@@ -173,7 +173,7 @@
 
                 // 获取周围POI
                 let results = await fetch(
-                    'https://restapi.amap.com/v3/place/around?sortrule=weight&key=6172ea799c64fdc98eed0bdd4869f3fc&location=' +
+                    'https://restapi.amap.com/v3/place/around?sortrule=weight&key=cee743afc48657ef03dc1fd18a3c59b9&location=' +
                     cluster.join(',') + '&radius=300&offset=10');
                 results = await results.json();
                 let pois = results['pois'];
@@ -188,12 +188,13 @@
 
                 // 点数量颜色
                 marker.setLabel({
-                    offset: new AMap.Pixel(5, 0), //设置文本标注偏移量
-                    content: `<div 
+                    offset: new AMap.Pixel(4, 0), //设置文本标注偏移量
+                    content: `<div class="input-item-text"
                     style=
                     "background:RGB(${count / 100. * 255},90,${(1 - count / 100.) * 255});
-                    color:RGB(${(1 - count / 100.) * 255},180,${count / 100. * 255});
-                    font-size:14px;">
+                    color:RGB(255,255,255);
+                    box-shadow: #e8e8e8;
+                    font-size:14px;border: #e8e8e8 0 solid;">
                     共${clusters_arr[index].length}个点</div>`, //设置文本标注内容
                     direction: 'right' //设置文本标注方位
                 });

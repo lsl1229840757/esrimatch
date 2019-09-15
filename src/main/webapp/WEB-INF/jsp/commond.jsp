@@ -121,13 +121,13 @@
                 "mousemove": mapMousemoveGetBound,
                 "rightclick": mapRightclickGetBound
             }
-        }
+        };
 
         var radio_function_mapping={
             "#nineBoxes":"getPoint",
             "#roadAlong":"getPoint",
             "#manual":"getBound"
-        }
+        };
 
         var operateStatus = "getPoint";
         var mousemoveBound = null;

@@ -1,0 +1,47 @@
+#sidebar {
+    /*display: none;*/
+    position: fixed;
+    right: -600px;
+    top: 0;
+    bottom: 0;
+    color: #fff;
+    width: 600px;
+    background: #f8f8f8;
+    padding: 20px;
+    text-align: center;
+    /*加出来的动画*/
+    transition: right 0.5s;
+}
+
+#chart {
+    background-color: #e7e4e39e;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+#area {
+    background-color: rgba(255, 252, 251, 0.62);
+    width: 40%;
+    margin: 0 auto;
+    height: 40px;
+    border: 1px solid black;
+    font-size: 20px;
+    margin-top: 60px;
+}
+
+#time-period {
+    margin-bottom: 10%;
+}
+
+#time-start, #time-end {
+    background-color: rgba(255, 252, 251, 0.62);
+    height: 40px;
+    border: 1px solid black;
+    font-size: 20px;
+    margin-top: 15px;
+}
+
+#time-division {
+    margin-top: 10px;
+    font-size: 25px;
+}
