@@ -120,7 +120,7 @@
     var app = new Vue({
         el: '#app',
         data: {
-            id: 1143,
+            id: 20274,
             day: '2016-08-01',
             span: null,
             length_total: null,
@@ -422,6 +422,7 @@
                 ]
             },
             series: [{
+                name:'能力雷达图',
                 type: 'radar',
                 data: [{
                     value: [app.length_total, app.customer_time, app.customer_count,

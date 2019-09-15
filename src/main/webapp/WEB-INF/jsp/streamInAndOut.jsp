@@ -82,7 +82,6 @@
                                 pitch: 50,
                                 viewMode: vieMode
                             });
-
                             flag = vieMode;
                         }
                         map.remove(polygons); //清除上次结果

@@ -327,7 +327,6 @@
                             data: jsonData,
                             async: true,
                             success: function (result) {
-                                alert("分析完成!");
                                 var timeList = [];
                                 var inData = [];
                                 var outData = [];
@@ -490,7 +489,7 @@
 <!-- container为地图容器 -->
 <div id="container" style="display: none">
 </div>
-<div class="input-card">
+<div class="input-card" style="width: auto">
     <label style='color:grey'>流入流出分析</label>
     <div class="input-item">
         <div class="input-item-prepend">

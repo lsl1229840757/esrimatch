@@ -261,7 +261,7 @@
 <!-- container为地图容器 -->
 <div id="container">
 </div>
-<div class="input-card">
+<div class="input-card" style="width: auto">
     <label style='color:grey'>行政区边界查询</label>
     <div class="input-item">
         <div class="input-item-prepend">
@@ -288,7 +288,7 @@
         </datalist>
     </div>
     <form id="distinctSearchForm" name="distinctSearchForm" action="${path}/status/ajax_modelPredict" method="post">
-        <div class="input-item" style="width: 105%">
+        <div class="input-item">
             <div class="input-item-prepend">
                 <span class="input-item-text" >查询时间</span>
             </div>
