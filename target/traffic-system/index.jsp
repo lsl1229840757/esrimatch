@@ -88,7 +88,7 @@
             width: 100%;
         }
 
-        .fa-car{
+        .fa-ils{
             height: 150px;
             width: 100%;
             font-size: 80px;
@@ -106,8 +106,11 @@
 
 <body>
 <div id="sidebar">
-    <span class="fa fa-car"></span>
+    <span class="fa fa-ils"></span>
     <h2 style="margin-bottom: 50px">CartoUrban</h2>
+    <h2>出租车大数据</h2>
+    <h2 style="margin-bottom: 50px">可视化分析平台</h2>
+
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-heading downArrow">
@@ -154,6 +157,11 @@
                         区域流入流出分析
                     </span>
                 </a>
+                <a href="#${path}/pages/modelPredict" class="list-group-item">
+                    <span class="fa fa-line-chart">
+                        区域出租车数目预测分析
+                    </span>
+                </a>
                 <a href="#${path}/pages/overallStatistics" class="list-group-item">
                     <span class="fa fa-pie-chart">
                         总体统计分析
@@ -162,11 +170,6 @@
                 <a href="#${path}/html/analysis.jsp" class="list-group-item">
                     <span class="fa fa-bar-chart">
                         单车统计分析
-                    </span>
-                </a>
-                <a href="#${path}/pages/modelPredict" class="list-group-item">
-                    <span class="fa fa-line-chart">
-                        区域出租车数目预测分析
                     </span>
                 </a>
             </div>

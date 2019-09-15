@@ -307,7 +307,6 @@
                         });
                         drawGraphics.push(polygonGraphic);
                     }
-                    console.log(drawGraphics);
                     view.graphics.addMany(drawGraphics);
 
                     // 给隐藏域添加数据
@@ -421,14 +420,6 @@
 
         });
     </script>
-    <script>
-
-        var heatmap;
-        $(function () {
-
-        });
-    </script>
-
 
     <style>
         html, body, #container {
