@@ -10,14 +10,13 @@
     <title>行政区边界查询</title>
     <%--bootstrap滑动条--%>
     <link href="//cdn.bootcss.com/bootstrap-slider/9.4.1/css/bootstrap-slider.css" rel="stylesheet">
-
-
     <script src="//cdn.bootcss.com/bootstrap-slider/9.4.1/bootstrap-slider.min.js"></script>
     <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
     <%--引入时间处理js--%>
     <script src="${path}/js/dateUtil.js"></script>
     <script src="${path}/js/validateForm.js"></script>
     <script src="//a.amap.com/jsapi_demos/static/resource/heatmapData.js"></script>
+    <link rel="stylesheet" href="${path}/css/input-style.css"/>
     <script>
         //判断浏览区是否支持canvas
         function isSupportCanvas() {
@@ -274,38 +273,8 @@
             margin:0;
             height:100%;
         }
-        .input-item-text{
-            width:7rem;
-        }
-        .input-item-copy{
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-            flex: 1 1 auto;
-            width: 1%;
-            margin-bottom: 0;
-            background: #fff;
-            padding: .375rem .75rem;
-            display: inline-block;
-            line-height: 1.5;
-            color: #495057;
-            vertical-align: middle;
-            border: 1px solid #ced4da;
-            -webkit-appearance: none;
-            height: calc(2.2rem + 2px);
-            font-family: inherit;
-            font-size: inherit;
-            overflow: visible;
-            text-transform: none;
-            -webkit-writing-mode: horizontal-tb !important;
-            text-rendering: auto;
-            letter-spacing: normal;
-            word-spacing: normal;
-            text-indent: 0;
-            text-shadow: none;
-            text-align: start;
-            -webkit-rtl-ordering: logical;
-            cursor: text;
-        }
+
+
     </style>
 </head>
 <body>
@@ -323,7 +292,7 @@
                 data-slider-value="15"/>
     </div>
 </div>
-<div class="input-card">
+<div class="input-card" style="width: auto; font-size: 14px;">
     <label style='color:grey'>行政区边界查询</label>
     <div class="input-item">
         <div class="input-item-prepend">
@@ -350,7 +319,7 @@
         </datalist>
     </div>
     <form id="distinctSearchForm" name="distinctSearchForm" action="${path}/status/ajax_searchByDistinct" method="post">
-        <div class="input-item" style="width: 105%">
+        <div class="input-item">
             <div class="input-item-prepend">
                 <span class="input-item-text" >查询时间</span>
             </div>
@@ -359,7 +328,7 @@
             <input id="district_geojson" name="district_geojson" type="hidden">
         </div>
     </form>
-    <div class="input-item" style="width: 105%">
+    <div class="input-item">
         <span class="input-item-text" >渲染半径</span>
         <input id="heatmapRadius" name="heatmapRadius" type="text" value="25" regr="^\d+$">
     </div>

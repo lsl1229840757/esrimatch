@@ -4,7 +4,13 @@
 <html>
 <head>
     <title>乘车地点预测与推荐</title>
+    <!--引入外部的bootstrap中的js文件-->
+    <script src="${path}/bootstrap/js/bootstrap.min.js"></script>
+    <!--再引入bootstrap.min.css-->
+    <link rel="stylesheet" href="${path}/bootstrap/css/bootstrap.min.css">
+
     <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+
     <script src="https://webapi.amap.com/maps?v=1.4.15&key=cd6ece2d349129205e0db8e0ebb42cce"></script>
     <script src="${path}/js/dateUtil.js"></script>
     <script src="${path}/js/validateForm.js"></script>
@@ -12,10 +18,9 @@
     <script src="${path}/html/gcoord.js"></script>
     <script src="${path}/html/turf.js"></script>
     <script src="${path}/js/coordinate-transformation.js"></script>
-    <!--引入外部的bootstrap中的js文件-->
-    <script src="${path}/bootstrap/js/bootstrap.min.js"></script>
     <script src="${path}/js/echarts.min.js"></script>
     <link rel="stylesheet" href="${path}/css/sidebar.css"/>
+    <link rel="stylesheet" href="${path}/css/input-style.css"/>
 </head>
 <body>
 <script>
@@ -1491,7 +1496,7 @@
         function bindRefreshUnitHint(){
             $('input[name="unitRadio"]').click(function (e) {
                 var unitNmae = $(this).val();
-                $("#unitHint").text("单位：" + unitNmae);
+                $("#unitHint").text(unitNmae);
             })
         }
 
@@ -1502,7 +1507,7 @@
         //初始化时间差interval的单位
         function initUnitHint(){
             var unitNmae = $('input[name="unitRadio"]:checked').val();
-            $("#unitHint").text("单位：" + unitNmae);
+            $("#unitHint").text(unitNmae);
         }
 
         /**
@@ -1629,39 +1634,6 @@
         height: 100%;
     }
 
-    .input-item-text{
-        width:7rem;
-    }
-    .input-item-copy{
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        flex: 1 1 auto;
-        width: 1%;
-        margin-bottom: 0;
-        background: #fff;
-        padding: .375rem .75rem;
-        display: inline-block;
-        line-height: 1.5;
-        color: #495057;
-        vertical-align: middle;
-        border: 1px solid #ced4da;
-        -webkit-appearance: none;
-        height: calc(2.2rem + 2px);
-        font-family: inherit;
-        font-size: inherit;
-        overflow: visible;
-        text-transform: none;
-        -webkit-writing-mode: horizontal-tb !important;
-        text-rendering: auto;
-        letter-spacing: normal;
-        word-spacing: normal;
-        text-indent: 0;
-        text-shadow: none;
-        text-align: start;
-        -webkit-rtl-ordering: logical;
-        cursor: text;
-    }
-
     input[type=radio]{
         margin: 0.5rem 0.5rem 0 0;
     }
@@ -1689,13 +1661,6 @@
     .radio{
         padding-bottom:5px;
     }
-
-    .btn-selected {
-        color: #fff;
-        background-color: #25A5F7;
-        border-color: #25A5F7;
-    }
-
     #timeLine{
         margin-top: 35%;
         float: left;
@@ -1707,14 +1672,9 @@
         min-height: 100%;
         margin-bottom: -15%; /* 等于footer的高度 */
     }
-    .footer, .push {
+    .push {
         height: 15%;
     }
-
-    #cd-horizontal-timeline{
-        margin: 0;
-    }
-
     .timeline{
         z-index: 1;
     }
@@ -1722,13 +1682,16 @@
     .prev inactive, next{
         margin: 0 10px;
     }
-
+    .checkbox input[type=checkbox], .checkbox-inline input[type=checkbox], .radio input[type=radio], .radio-inline input[type=radio] {
+        position: inherit;
+        margin-left: 10px;
+    }
 </style>
 
 <nav class="navbar navbar-default" style="margin: 0px">
     <p class="navbar-text">
         <b>
-            区域流入流出分析
+            出租车载客分析
         </b>
     </p>
     <div class="container-fluid">
@@ -1862,7 +1825,7 @@
         </div>
 
         <form id="predictForm" name="predictForm" action="${path}/commond/" method="post">
-            <div class="input-item" style="width: 105%">
+            <div class="input-item">
                 <span class="input-item-text">查询时间</span>
                 <input id='now_time' name="now_time" class="input-item-copy" type="datetime-local" regr="\S"
                        tip="请按规范填写日期!">
@@ -1883,7 +1846,7 @@
             <div class="input-item">
                 <span class="input-item-text">间隔时间</span>
                 <input id='interval' name="interval" class="input-item-copy" type="text" value="1" regr="^\d+(\.\d+)?$">
-                <span class="input-item-text" id="unitHint">单位：</span>
+                <span class="input-item-text" id="unitHint"></span>
             </div>
             <div class="input-item" >
                 <span class="input-item-text">间隔段数</span>

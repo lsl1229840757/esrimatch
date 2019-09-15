@@ -119,16 +119,17 @@
                     </span>
             </div>
             <div id="collapseThree1" class="collapse" role="tabpanel" aria-labelledby="headingThree">
-                <a href="#${path}/pages/streamInAndOut" class="list-group-item">
-                    <span class="fa fa-circle-o-notch">
-                        区域流入流出热力图
-                    </span>
-                </a>
+
                 <a href="#${path}/html/track.jsp" class="list-group-item">
                     <span class="fa fa-road">
                         车辆轨迹追踪
                     </span>
                 </a>
+                <a href="#${path}/pages/streamInAndOut" class="list-group-item">
+                    <span class="fa fa-circle-o-notch">
+                        区域流入流出热力图
+                    </span>
+            </a>
                 <a href="#${path}/pages/distinctSearchPage" class="list-group-item">
                     <span class="fa fa-dot-circle-o">
                         区域车辆热力图
@@ -192,8 +193,8 @@
                     </span>
                 </a>
                 <a href="#${path}/html/cluster.html" class="list-group-item">
-                    <span class="fa fa-thumbs-o-up">
-                        DBSCAN聚类推荐
+                    <span class="fa fa-asterisk">
+                        DBSCAN聚类车辆调度
                     </span>
                 </a>
             </div>

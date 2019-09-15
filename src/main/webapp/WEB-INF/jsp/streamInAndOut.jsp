@@ -28,6 +28,7 @@
     <script src="//webapi.amap.com/maps?v=1.4.15&key=cd6ece2d349129205e0db8e0ebb42cce&"></script>
     <script src="//webapi.amap.com/loca?v=1.3.0&key=cd6ece2d349129205e0db8e0ebb42cce"></script>
     <script src="//a.amap.com/Loca/static/mock/heatmapData.js"></script>
+    <link rel="stylesheet" href="../css/input-style.css"/>
     <script>
         //判断浏览区是否支持canvas
         function isSupportCanvas() {
@@ -50,6 +51,7 @@
             var district = null;
             var polygons = [];
             var layer = [];
+            var flag = null;
 
             function search() {
                 //加载行政区划插件
@@ -71,21 +73,17 @@
                 // 开始搜索事件
                 district.search($("#district").val(), function (status, result) {
                         var vieMode = $("#display").val();
-                        if (vieMode == "2D") {
-                            var map = new AMap.Map("container", {
-                                resizeEnable: true,
-                                center: [116.397428, 39.90923],//地图中心点
-                                zoom: 10, //地图显示的缩放级别
-                                viewMode: '2D'
-                            });
-                        } else {
-                            var map = new AMap.Map("container", {
+
+                        if(flag!=vieMode){
+                            map = new AMap.Map("container", {
                                 resizeEnable: true,
                                 center: [116.397428, 39.90923],//地图中心点
                                 zoom: 10, //地图显示的缩放级别
                                 pitch: 50,
-                                viewMode: '3D'
+                                viewMode: vieMode
                             });
+
+                            flag = vieMode;
                         }
                         map.remove(polygons); //清除上次结果
                         map.remove(layer);
@@ -240,43 +238,13 @@
         .input-item-text {
             width: 7rem;
         }
-
-        .input-item-copy {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-            flex: 1 1 auto;
-            width: 1%;
-            margin-bottom: 0;
-            background: #fff;
-            padding: .375rem .75rem;
-            display: inline-block;
-            line-height: 1.5;
-            color: #495057;
-            vertical-align: middle;
-            border: 1px solid #ced4da;
-            -webkit-appearance: none;
-            height: calc(2.2rem + 2px);
-            font-family: inherit;
-            font-size: inherit;
-            overflow: visible;
-            text-transform: none;
-            -webkit-writing-mode: horizontal-tb !important;
-            text-rendering: auto;
-            letter-spacing: normal;
-            word-spacing: normal;
-            text-indent: 0;
-            text-shadow: none;
-            text-align: start;
-            -webkit-rtl-ordering: logical;
-            cursor: text;
-        }
     </style>
 </head>
 <body>
 <div id="container">
 
 </div>
-<div class="input-card">
+    <div class="input-card" style="width: auto;">
     <label style='color:grey'>流入流出分析</label>
     <div class="input-item">
         <div class="input-item-prepend">
@@ -305,7 +273,7 @@
     </div>
 
     <form id="distinctSearchForm" name="distinctSearchForm" action="${path}/status/ajax_flowAnalyse" method="post">
-        <div class="input-item" style="width: 105%">
+        <div class="input-item">
             <div class="input-item-prepend">
                 <span class="input-item-text">查询时间</span>
             </div>

@@ -1,13 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@include file="taglibs.jsp" %>
-<link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
 <script src="https://webapi.amap.com/maps?v=1.4.15&key=cd6ece2d349129205e0db8e0ebb42cce"></script>
 <%--引入时间处理js--%>
 <script src="${path}/js/dateUtil.js"></script>
 <script src="${path}/js/validateForm.js"></script>
+
+<!--引入外部的bootstrap中的js文件-->
+<script src="${path}/bootstrap/js/bootstrap.min.js"></script>
+<!--再引入bootstrap.min.css-->
+<link rel="stylesheet" href="${path}/bootstrap/css/bootstrap.min.css">
 <%--bootstrap滑动条--%>
 <link href="//cdn.bootcss.com/bootstrap-slider/9.4.1/css/bootstrap-slider.css" rel="stylesheet">
 <script src="//cdn.bootcss.com/bootstrap-slider/9.4.1/bootstrap-slider.min.js"></script>
+
+<link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+
 <script src="${path}/html/gcoord.js"></script>
 <script src="${path}/html/turf.js"></script>
 <script src="${path}/js/coordinate-transformation.js"></script>
@@ -15,6 +22,7 @@
 <link rel="stylesheet" href="${path}/css/sidebar.css"/>
 <script src="${path}/js/echarts.min.js"></script>
 <script src="${path}/js/lodash.js"></script>
+<link rel="stylesheet" href="${path}/css/input-style.css"/>
 <html>
 <head>
     <title>RoadHeatMap</title>
@@ -41,42 +49,6 @@
         width: 100%;
         height: 100%;
     }
-    .input-item-copy{
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        flex: 1 1 auto;
-        width: 1%;
-        margin-bottom: 0;
-        background: #fff;
-        padding: .375rem .75rem;
-        display: inline-block;
-        line-height: 1.5;
-        color: #495057;
-        vertical-align: middle;
-        border: 1px solid #ced4da;
-        -webkit-appearance: none;
-        height: calc(2.2rem + 2px);
-        font-family: inherit;
-        font-size: inherit;
-        overflow: visible;
-        text-transform: none;
-        -webkit-writing-mode: horizontal-tb !important;
-        text-rendering: auto;
-        letter-spacing: normal;
-        word-spacing: normal;
-        text-indent: 0;
-        text-shadow: none;
-        text-align: start;
-        -webkit-rtl-ordering: logical;
-        cursor: text;
-    }
-
-    .slider{
-        margin-top: 0.5%;
-        margin-left: 30%;
-
-    }
-
 
     #slider12a .slider-track-high{
         background: #b3afb1;
@@ -93,6 +65,10 @@
     #ex1{
         background: #BABABA;
         /*#BABABA;*/
+    }
+    .checkbox input[type=checkbox], .checkbox-inline input[type=checkbox], .radio input[type=radio], .radio-inline input[type=radio] {
+        position: inherit;
+        margin-left: 10px;
     }
 
 </style>
@@ -849,7 +825,7 @@
         //初始化时间差interval的单位
         function initUnitHint(){
             var unitNmae = $('input[name="unitRadio"]:checked').val();
-            $("#unitHint").text("单位：" + unitNmae);
+            $("#unitHint").text(unitNmae);
         }
 
         function getBufferParam(){
@@ -894,7 +870,7 @@
         function bindRefreshUnitHint(){
             $('input[name="unitRadio"]').click(function (e) {
                 var unitNmae = $(this).val();
-                $("#unitHint").text("单位：" + unitNmae);
+                $("#unitHint").text(unitNmae);
             })
         }
 
@@ -1131,11 +1107,11 @@
         <input id='address' name="address" class="input-item-copy" type="text">
     </div>
     <form id="distinctSearchForm" name="distinctSearchForm" action="${path}/status/ajax_searchByDistinct" method="post">
-        <div class="input-item" style="width: 105%">
+        <div class="input-item">
             <span class="input-item-text" >缓冲区半径</span>
-            <input id="radius" name="radius" type="text" value="0.01" regr="^\d+\.\d+$">
+            <input id="radius" name="radius" type="text" value="0.01" regr="^\d+\.\d+$"  class="input-item-copy">
         </div>
-        <div class="input-item" style="width: 105%">
+        <div class="input-item">
             <span class="input-item-text">查询时间</span>
             <input id='start_time' name="start_time" class="input-item-copy" type="datetime-local" regr="\S"
                    tip="请按规范填写日期!">
@@ -1159,16 +1135,16 @@
         <div class="input-item">
             <span class="input-item-text">间隔时间</span>
             <input id='interval' name="interval" class="input-item-copy" type="text" value="1" regr="^\d+(\.\d+)?$">
-            <span class="input-item-text" id="unitHint">单位：</span>
+            <span class="input-item-text" id="unitHint"></span>
         </div>
-        <div class="input-item" style="width: 105%">
+        <div class="input-item">
             <span class="input-item-text" >渲染半径</span>
             <input id="heatmapRadius" name="heatmapRadius" type="text" value="25" regr="^\d+$">
         </div>
     </form>
 
     <div class="input-item">
-        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="clearRoads">清空道路线</button>
         <span>&nbsp;&nbsp;&nbsp;</span>
         <button class="btn" id="hideRoads">隐藏道路线</button>

@@ -381,7 +381,7 @@
 
     </div>
     <form id="distinctSearchForm" name="distinctSearchForm" action="${path}/status/ajax_flowAnalyse" method="post">
-        <div class="input-item" style="width: 105%">
+        <div class="input-item">
             <div class="input-item-prepend">
                 <span class="input-item-text">查询时间</span>
             </div>

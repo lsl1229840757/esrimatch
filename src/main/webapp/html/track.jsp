@@ -33,7 +33,7 @@
         }
 
         #container {
-            height: 80%;
+            height: 85%;s
             width: 100%;
         }
 
